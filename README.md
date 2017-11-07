@@ -63,7 +63,7 @@ Si en ambas corridas aparece el siguiente mensaje:
 Error in newnamesF[i] <- gsub(paste("FISH_P1-", pocillo[i], sep = ""),  : 
   replacement has length zero
 ```
-Es porque no todos los nombres del vector `meta2$pocillo` han encontrado un emperajamiento dentro del loop. 
+Es porque no todos los nombres del vector `meta2$pocillo` han encontrado un emperejamiento dentro del loop. 
 
 
 ## SpecimenData 
