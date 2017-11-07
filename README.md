@@ -38,6 +38,8 @@ for(i in 1:length(meta2$pocillo)){ ##loop
         )
         oldnamesF[i] <- grep(pocillo[i], stringF, value = T)
 }
+
+file.rename(from = oldnamesF, to = newnamesF)
 ```
 y similarmente para los cromatogramas Reverse:
 
@@ -56,6 +58,8 @@ for(i in 1:length(meta2$pocillo)){##loop
         )
         oldnamesR[i] <- grep(pocillo[i], stringR, value = T)
 }
+
+file.rename(from = oldnamesR, to = newnamesR)
 ```
 Si en ambas corridas aparece el siguiente mensaje:
 
