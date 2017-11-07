@@ -225,4 +225,80 @@ ID_engine<- function(query, db, ...){
 }
 ```
 
+Si queremos tener la identificación a nivel de especie, por ejemplo, de las secuencias guardadas en [secuencias.txt](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/secuencias.txt), podemos usar el siguiente código:
 
+```R
+out <- ID_engine(query = read.FASTA('secuencias.txt'), db = "COX1_SPECIES")
+```
+Vemos los resultados primeros 10 filas y las columnas 1, 5 y 6 de cada elemento de la lista de resultados:
+```R
+lapply(out, function(x){
+        x[1:10, c(1,5,6)]
+})
+```
+```
+$`ANGBF10913-15|Alopias pelagicus|COI-5P|KJ146022`
+              ID taxonomicidentification similarity
+1    PHANT458-08             Lamniformes          1
+2    IRREK872-08             Lamniformes          1
+3    IRREK873-08             Lamniformes          1
+4    IRREK874-08             Lamniformes          1
+5    IRREK876-08             Lamniformes          1
+6  ANGBF12625-15       Alopias pelagicus          1
+7  ANGBF12624-15       Alopias pelagicus          1
+8  ANGBF12623-15       Alopias pelagicus          1
+9  ANGBF11726-15       Alopias pelagicus          1
+10 ANGBF11721-15       Alopias pelagicus          1
+
+$`ANGBF10914-15|Alopias pelagicus|COI-5P|KJ146023`
+              ID taxonomicidentification similarity
+1  ANGBF10914-15       Alopias pelagicus          1
+2    ESHKB029-07       Alopias pelagicus          1
+3  ANGBF10913-15       Alopias pelagicus     0.9985
+4    PHANT458-08             Lamniformes     0.9985
+5    IRREK873-08             Lamniformes     0.9985
+6    IRREK874-08             Lamniformes     0.9985
+7    IRREK876-08             Lamniformes     0.9985
+8    ESHKD018-07       Alopias pelagicus     0.9985
+9    ESHKB033-07       Alopias pelagicus     0.9985
+10   ESHKB026-07       Alopias pelagicus     0.9985
+
+$`ANGBF10915-15|Alopias pelagicus|COI-5P|KJ146024`
+              ID taxonomicidentification similarity
+1  ANGBF12626-15       Alopias pelagicus          1
+2  ANGBF12623-15       Alopias pelagicus          1
+3  ANGBF11723-15       Alopias pelagicus          1
+4  ANGBF10915-15       Alopias pelagicus          1
+5    ESHKB036-07       Alopias pelagicus          1
+6    ESHKB030-07       Alopias pelagicus          1
+7    ESHKB031-07       Alopias pelagicus          1
+8    ESHKB034-07       Alopias pelagicus          1
+9  ANGBF10917-15       Alopias pelagicus     0.9986
+10 ANGBF10916-15       Alopias pelagicus     0.9986
+
+$`ANGBF10916-15|Alopias pelagicus|COI-5P|KJ146025`
+              ID taxonomicidentification similarity
+1  ANGBF11731-15       Alopias pelagicus          1
+2  ANGBF10916-15       Alopias pelagicus          1
+3  ANGBF10915-15       Alopias pelagicus     0.9986
+4    ESHKB031-07       Alopias pelagicus     0.9985
+5    ESHKB034-07       Alopias pelagicus     0.9985
+6  ANGBF11723-15       Alopias pelagicus     0.9984
+7    ESHKB030-07       Alopias pelagicus     0.9984
+8  ANGBF12626-15       Alopias pelagicus     0.9983
+9  ANGBF12623-15       Alopias pelagicus     0.9982
+10   ESHKB036-07       Alopias pelagicus     0.9981
+
+$`ANGBF10917-15|Alopias pelagicus|COI-5P|KJ146026`
+              ID taxonomicidentification similarity
+1  ANGBF11729-15       Alopias pelagicus          1
+2  ANGBF10917-15       Alopias pelagicus          1
+3    ESHKB036-07       Alopias pelagicus          1
+4  ANGBF10915-15       Alopias pelagicus     0.9986
+5    ESHKB031-07       Alopias pelagicus     0.9985
+6    ESHKB034-07       Alopias pelagicus     0.9985
+7  ANGBF11723-15       Alopias pelagicus     0.9984
+8    ESHKB030-07       Alopias pelagicus     0.9984
+9  ANGBF12626-15       Alopias pelagicus     0.9983
+10 ANGBF12623-15       Alopias pelagicus     0.9982
+```
