@@ -63,7 +63,6 @@ Error in newnamesF[i] <- gsub(paste("FISH_P1-", pocillo[i], sep = ""),  :
 ```
 Es porque no todos los nombres del vector `meta2$pocillo` han encontrado un emperajamiento dentro del loop. 
 
-***
 
 ## SpecimenData 
 
@@ -144,7 +143,7 @@ tibble::as.tibble(specimendata)
 #   exactsite <lgl>, image_ids <lgl>, image_urls <lgl>, media_descriptors <lgl>, captions <lgl>, copyright_holders <lgl>, copyright_years <lgl>,
 #   copyright_licenses <lgl>, copyright_institutions <lgl>, photographers <lgl>
 ```
-También podemos bajar esta misma tabla incluyendo información de la secuencias en las últimas 12 columnas con el argumento `seq = "combined"`:
+Podemos también incluir en las últimas 13 columnas información de secuencias con el argumento `seq = "only"`:
 
 ```R
 tibble::as.tibble(SpecimenData(taxon = "Elasmobranchii", geo = "Peru", seq = "combined"))
@@ -176,7 +175,7 @@ tibble::as.tibble(SpecimenData(taxon = "Elasmobranchii", geo = "Peru", seq = "co
 #   genbank_accession <fctr>, nucleotides <fctr>, trace_ids <fctr>, trace_names <fctr>, trace_links <fctr>, run_dates <fctr>, sequencing_centers <fctr>,
 #   directions <fctr>, seq_primers <fctr>, marker_codes <fctr>
 ```
-Si solo queremos las secuencias podemos usar las secuencias podemos usar el argumento `seq = "only"`:
+Si solo se desea las secuencias de la anterior tabla, se debe modificar el argumento `seq = combined` a `seq = only`:
 
 ```R
 SpecimenData(taxon = "Elasmobranchii", geo = "Peru", seq = "only")
@@ -201,5 +200,5 @@ Base composition:
     a     c     g     t 
 0.256 0.264 0.166 0.314 
 ```
-
+Se pueden guardar las secuencias anteriores usando la funcion `write.dna()` del paquete ape:
 
