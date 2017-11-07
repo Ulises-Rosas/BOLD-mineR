@@ -213,6 +213,9 @@ La función **ID_engine** nos permite encontrar los especímenes del repositorio
 
 La función es la siguiente:
 ```R
+library(ape)
+library(XML)
+
 ID_engine<- function(query, db, ...){
         seqs <- lapply(query, function(x){
                 paste(as.character.DNAbin(x), collapse = "")})
