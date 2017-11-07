@@ -1,5 +1,7 @@
 # BOLD-mineR
 
+
+
 ## Renombrado de cromatogramas
 
 Se renombrarán los archivos en función a una metadata guardada en `metadata.txt`. Esta metadata se carga en la consola:
@@ -114,7 +116,7 @@ Si queremos tener la información, por ejemplo, de especímenes de todos los ela
 ```R
 specimendata <- SpecimenData(taxon = "Elasmobranchii", geo = "Peru")
 ```
-Luego, solo para evaluar las dimensiones de la tabla obtenida usamos el paquete `tibble`
+Luego, solo para evaluar las dimensiones de la tabla obtenida usamos el paquete _tibble_
 ```R
 tibble::as.tibble(specimendata)
 ```
@@ -143,7 +145,7 @@ tibble::as.tibble(specimendata)
 #   exactsite <lgl>, image_ids <lgl>, image_urls <lgl>, media_descriptors <lgl>, captions <lgl>, copyright_holders <lgl>, copyright_years <lgl>,
 #   copyright_licenses <lgl>, copyright_institutions <lgl>, photographers <lgl>
 ```
-Podemos también incluir en las últimas 13 columnas información de secuencias con el argumento `seq = "only"`:
+Podemos también incluir en las últimas 13 columnas información de secuencias con el argumento `seq = "combined"`:
 
 ```R
 tibble::as.tibble(SpecimenData(taxon = "Elasmobranchii", geo = "Peru", seq = "combined"))
@@ -200,5 +202,27 @@ Base composition:
     a     c     g     t 
 0.256 0.264 0.166 0.314 
 ```
-Se pueden guardar las secuencias anteriores usando la funcion `write.dna()` del paquete ape:
+Se pueden guardar las secuencias anteriores usando la funcion `write.dna()` del paquete _ape_:
+```R
+seqs <- SpecimenData(taxon = "Elasmobranchii", geo = "Peru", seqs = "only")[1:5] ##seleccionamos solo cinco secuencias
+write.dna(seqs, 'secuencias.txt', format = 'fasta', nbcol = 1, colw = 90)
+```
+## ID_engine
+
+La función **ID_engine** nos permite encontrar los especímenes del repositorio BOLD que generan los mejores porcentajes de similitud dada una secuencia cualquiera a través de algoritmos inspirados en BLASTn. Los argumentos de esta función son `query` y `db`. El primer argumento son las secuencias problema o consulta y el segundo argumento es una de las cuatro base de datos disponibles en BOLD (i.e. `COX1`, `COX1_SPECIES`, `COX1_SPECIES_PUBLIC` y `COX1_L640bp`).
+
+La función es la siguiente:
+```R
+ID_engine<- function(query, db, ...){
+        seqs <- lapply(query, function(x){
+                paste(as.character.DNAbin(x), collapse = "")})
+        
+        lapply(seqs, function(x){
+                data <- xmlParse( paste("http://www.boldsystems.org/index.php/Ids_xml?db=",
+                                        db, "&sequence=", x, sep = ""))
+                xmlToDataFrame(data)
+        })
+}
+```
+
 
