@@ -112,7 +112,7 @@ SpecimenData <- function(taxon, ids, bin, container,
 }
 ```
 Si queremos tener la información de especímenes de todos los elasmobranquios en el Peru depositados en BOLD, usamos el siguiente código:
-```R
+````
 >SpecimenData(taxon = "Elasmobranchii", geo = "Peru")
         processid      sampleid recordID    catalognum     fieldnum                          institution_storing collection_code
  1: ANGBF10913-15      KJ146022  5651960                   KJ146022                     Mined from GenBank, NCBI              NA
