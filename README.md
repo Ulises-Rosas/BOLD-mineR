@@ -236,7 +236,7 @@ out <- ID_engine(query = read.FASTA('secuencias.txt'), db = "COX1_SPECIES")
 Vemos las 7 primeras filas y las columnas 1, 5 y 6 de cada elemento de la lista de resultados `out`:
 ```R
 lapply(out, function(x){
-        x[1:10, c(1,5,6)]
+        x[1:7, c(1,5,6)]
 })
 ```
 ```
