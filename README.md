@@ -181,7 +181,7 @@ tibble::as.tibble(SpecimenData(taxon = "Elasmobranchii", geo = "Peru", seq = "co
 #   genbank_accession <fctr>, nucleotides <fctr>, trace_ids <fctr>, trace_names <fctr>, trace_links <fctr>, run_dates <fctr>, sequencing_centers <fctr>,
 #   directions <fctr>, seq_primers <fctr>, marker_codes <fctr>
 ```
-Si solo se desea las secuencias de la anterior tabla, se debe modificar el argumento `seq = combined` a `seq = only`:
+Si solo se desea las secuencias de la anterior tabla, se debe modificar el argumento `seq = "combined"` a `seq = "only"`:
 
 ```R
 SpecimenData(taxon = "Elasmobranchii", geo = "Peru", seq = "only")
