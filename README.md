@@ -419,13 +419,13 @@ addAudition <- function(seqs, threshold){
         return(data.frame(Samples = names(seqs), do.call('rbind', lista2)))
 }
 ```
-In order to test its efficiency, we conduct a species identification of samples stored in [secuencias.txt](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/secuencias.txt) using a `threshold = 0.99`:
+In order to test its efficiency, we conduct species-level identification of samples stored in [secuencias.txt](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/secuencias.txt) using a `threshold = 0.99`:
 
 
 ```R
 addAudition(seqs = read.FASTA('secuencias.txt'), threshold = 0.99)
 #  |**********************************************************************************************************************************************| 100%
-                                          Samples  Match           Species Grades                                Observations
+#                                          Samples  Match           Species Grades                                Observations
 #1 ANGBF10913-15|Alopias pelagicus|COI-5P|KJ146022 Unique Alopias pelagicus      A There were 44 matches. External congruence.
 #2 ANGBF10914-15|Alopias pelagicus|COI-5P|KJ146023 Unique Alopias pelagicus      A There were 34 matches. External congruence.
 #3 ANGBF10915-15|Alopias pelagicus|COI-5P|KJ146024 Unique Alopias pelagicus      A There were 70 matches. External congruence.
