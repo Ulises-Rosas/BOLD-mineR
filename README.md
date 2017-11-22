@@ -419,8 +419,7 @@ addAudition <- function(seqs, threshold){
         return(data.frame(Samples = names(seqs), do.call('rbind', lista2)))
 }
 ```
-In order to test its efficiency, we conduct species-level identification of samples stored in [secuencias.txt](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/secuencias.txt) using a `threshold = 0.99`:
-
+In order to test its efficiency, species-level identification of samples stored in [secuencias.txt](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/secuencias.txt) using a `threshold = 0.99` is conduted:
 
 ```R
 addAudition(seqs = read.FASTA('secuencias.txt'), threshold = 0.99)
