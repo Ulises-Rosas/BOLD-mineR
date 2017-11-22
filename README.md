@@ -424,11 +424,11 @@ In order to test its efficiency, we conduct a species identification of samples 
 
 ```R
 addAudition(seqs = read.FASTA('secuencias.txt'), threshold = 0.99)
-  |**********************************************************************************************************************************************| 100%
+#  |**********************************************************************************************************************************************| 100%
                                           Samples  Match           Species Grades                                Observations
-1 ANGBF10913-15|Alopias pelagicus|COI-5P|KJ146022 Unique Alopias pelagicus      A There were 44 matches. External congruence.
-2 ANGBF10914-15|Alopias pelagicus|COI-5P|KJ146023 Unique Alopias pelagicus      A There were 34 matches. External congruence.
-3 ANGBF10915-15|Alopias pelagicus|COI-5P|KJ146024 Unique Alopias pelagicus      A There were 70 matches. External congruence.
-4 ANGBF10916-15|Alopias pelagicus|COI-5P|KJ146025 Unique Alopias pelagicus      A There were 34 matches. External congruence.
-5 ANGBF10917-15|Alopias pelagicus|COI-5P|KJ146026 Unique Alopias pelagicus      A There were 40 matches. External congruence.
+#1 ANGBF10913-15|Alopias pelagicus|COI-5P|KJ146022 Unique Alopias pelagicus      A There were 44 matches. External congruence.
+#2 ANGBF10914-15|Alopias pelagicus|COI-5P|KJ146023 Unique Alopias pelagicus      A There were 34 matches. External congruence.
+#3 ANGBF10915-15|Alopias pelagicus|COI-5P|KJ146024 Unique Alopias pelagicus      A There were 70 matches. External congruence.
+#4 ANGBF10916-15|Alopias pelagicus|COI-5P|KJ146025 Unique Alopias pelagicus      A There were 34 matches. External congruence.
+#5 ANGBF10917-15|Alopias pelagicus|COI-5P|KJ146026 Unique Alopias pelagicus      A There were 40 matches. External congruence.
 ```
