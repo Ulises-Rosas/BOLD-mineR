@@ -2,17 +2,16 @@
 
 
 
-## Renombrado de cromatogramas
+## Renamed chromatograms
 
-Se renombrarán los archivos en función a una metadata guardada en `metadata.txt`. Esta metadata se carga en la consola:
-
+We can take advantage of names stored in a metadata to rename by default names from a Sanger sequencing (i.e. \*.ab1 files). Therein we upload `metadata.txt` in the R console: 
 ```R
 meta = read.table('metadata.txt', header = T, sep = "\t")
 meta2 = data.frame(cod = meta$Código, pocillo = meta$poccillo, stringsAsFactors = F)
 head(meta2)
 ```
 ```
-cod pocillo
+cod well
 1 TP_001      A1
 2 TP_002      A2
 3 TP_003      A3
@@ -20,61 +19,67 @@ cod pocillo
 5 TP_005      A5
 6 TP_006      A6
 ```
-Luego, usamos esta información para renombrar los cromatogramas Forward:
-
+Then, we use this information to rename Forward chromatograms:
 ```R
 
-stringF = list.files(pattern = "M13F-21.ab1") ##Obtenemos los nombres de los archivos que contengan ese patrón
+stringF = list.files(pattern = "M13F-21.ab1") ## find a forward-based pattern in my working directory
+newnamesF = vector("character") ##vector where new names will be stored
+oldnamesF = vector("character") ##vector where original names will be stored while it runs the loop
 
-newnamesF = vector("character") ##vector donde se guardará los nuevos nombres
-oldnamesF = vector("character") ##vector donde se guardará los nombres orginales por match dentro del loop
-
-for(i in 1:length(meta2$pocillo)){ ##loop
-        pocillo = paste(as.character(meta2$pocillo), "_", sep = "") ##modficación de la columna 'pocillos'
-        newnamesF[i] <- gsub(   ##función que subtituye globalmente
+for(i in 1:length(meta2$well)){ ##loop
+        ##we modify the 'well' column to ensure matches
+        pocillo = paste(as.character(meta2$well), "_", sep = "") 
+        newnamesF[i] <- gsub(   
                 paste("FISH_P1-", pocillo[i], sep = ""),
                 paste(as.character(meta2$cod)[i], "_", sep = ""),
-                grep(pocillo[i],stringF, value = T) ##hace el emparejamiento entre el pocillo y cromatogramas
+                grep(pocillo[i],stringF, value = T) ##find for matches between well and chromatograms' names
         )
         oldnamesF[i] <- grep(pocillo[i], stringF, value = T)
 }
 
 file.rename(from = oldnamesF, to = newnamesF)
 ```
-y similarmente para los cromatogramas Reverse:
-
+and likewise for Reverse chromatograms:
 ```R
-stringR = list.files(pattern = "M13R-27.ab1") ##Obtenemos los nombres de los archivos que contengan ese patrón
+stringR = list.files(pattern = "M13R-27.ab1") ## find a forward-based pattern in my working directory
 
-newnamesR = vector("character") ##vector donde se guardará los nuevos nombres
-oldnamesR = vector("character") ##vector donde se guardará los nombres orginales por match dentro del loop
+newnamesR = vector("character") ##vector where new names will be stored
+oldnamesR = vector("character") ##vector where original names will be stored while it runs the loop
 
 for(i in 1:length(meta2$pocillo)){##loop
-        pocillo = paste(as.character(meta2$pocillo), "_", sep = "") ##modficación de la columna 'pocillos'
-        newnamesR[i] <- gsub( ##función que subtituye globalmente
+        ##we modify the 'well' column to ensure matches
+        pocillo = paste(as.character(meta2$pocillo), "_", sep = "") 
+        newnamesR[i] <- gsub( 
                 paste("FISH_P1-", pocillo[i], sep = ""),
                 paste(as.character(meta2$cod)[i], "_", sep = ""),
-                grep(pocillo[i],stringR, value = T) ##hace el emparejamiento entre el pocillo y cromatogramas
+                grep(pocillo[i],stringR, value = T)##find for matches between well and chromatograms' names
         )
         oldnamesR[i] <- grep(pocillo[i], stringR, value = T)
 }
 
 file.rename(from = oldnamesR, to = newnamesR)
 ```
-Si en ambas corridas aparece el siguiente mensaje:
-
+if on both runs suddenly appear a message like this:
 ```
 Error in newnamesF[i] <- gsub(paste("FISH_P1-", pocillo[i], sep = ""),  : 
   replacement has length zero
 ```
-Es porque no todos los nombres del vector `meta2$pocillo` han encontrado un emparejamiento dentro del loop. 
-
+There was not a fully correspondence between all names from `meta2$well` vector and chromatograms available in the current working directory.
 
 ## SpecimenData 
 
-La función **SpecimenData** nos permite minar la metadata asociada de cualquier espécimen según los argumentos `taxon` (e.g. Aves|Elasmobranchii), `ids` (e.g. ANGBF12704-15), `bin` (e.g. BOLD:AAA4689), `container` (e.g. FIPP), `institution` (e.g. Smithsonian Institution), `researchers` (incluye identificadores y colectores), `geo` (e.g. Peru).
+This function **SpecimenData** let us mine associated metadata from any specimen according to following arguments:
 
-La función es la siguiente:
+* `taxon` (e.g. Aves|Elasmobranchii).
+* `ids` (e.g. ANGBF12704-15).
+* `bin` (e.g. BOLD:AAA4689).
+* `container` (e.g. FIPP).
+* `institution` (e.g. Smithsonian Institution).
+* `researchers` (including identifiers and collectors).
+* `geo` (e.g. Peru).
+
+The function is the following:
+
 ```R
 library(RCurl)
 library(ape)
@@ -116,15 +121,15 @@ SpecimenData <- function(taxon, ids, bin, container,
         data.table::fread(text)
 }
 ```
-Si queremos tener la información, por ejemplo, de especímenes de todos los elasmobranquios en el Peru depositados en BOLD, podemos usar el siguiente código:
+If we want to get information, for instance, from all specimens of elasmobranchs distributed in Peru and stored in BOLD, we can use the following line:
 ```R
 specimendata <- SpecimenData(taxon = "Elasmobranchii", geo = "Peru")
 ```
-Luego, solo para evaluar las dimensiones de la tabla obtenida usamos el paquete _tibble_
+Then, we use _tibble_ package to only assess its dimension:
+
 ```R
 tibble::as.tibble(specimendata)
 ```
-
 ```
 # A tibble: 10 x 68
        processid sampleid recordID catalognum fieldnum      institution_storing collection_code      bin_uri phylum_taxID phylum_name class_taxID
@@ -149,7 +154,7 @@ tibble::as.tibble(specimendata)
 #   exactsite <lgl>, image_ids <lgl>, image_urls <lgl>, media_descriptors <lgl>, captions <lgl>, copyright_holders <lgl>, copyright_years <lgl>,
 #   copyright_licenses <lgl>, copyright_institutions <lgl>, photographers <lgl>
 ```
-Podemos también incluir en las últimas 13 columnas información de secuencias con el argumento `seq = "combined"`:
+We can also add sequences, and its associated information, from each specimen by using the argument `seq = "combined"`:
 
 ```R
 tibble::as.tibble(SpecimenData(taxon = "Elasmobranchii", geo = "Peru", seq = "combined"))
@@ -181,8 +186,8 @@ tibble::as.tibble(SpecimenData(taxon = "Elasmobranchii", geo = "Peru", seq = "co
 #   genbank_accession <fctr>, nucleotides <fctr>, trace_ids <fctr>, trace_names <fctr>, trace_links <fctr>, run_dates <fctr>, sequencing_centers <fctr>,
 #   directions <fctr>, seq_primers <fctr>, marker_codes <fctr>
 ```
-Si solo se desea las secuencias de la anterior tabla, se debe modificar el argumento `seq = "combined"` a `seq = "only"`:
 
+However, if only sequences are desired, the argument `seq = "combined"` should change to `seq = "only"`:
 ```R
 SpecimenData(taxon = "Elasmobranchii", geo = "Peru", seq = "only")
 ```
@@ -206,16 +211,16 @@ Base composition:
     a     c     g     t 
 0.256 0.264 0.166 0.314 
 ```
-Se pueden guardar las secuencias anteriores usando la funcion `write.dna()` del paquete _ape_:
+Above sequence can be also stored by using `write.dna()` function from the _ape_ package:
 ```R
-seqs <- SpecimenData(taxon = "Elasmobranchii", geo = "Peru", seqs = "only")[1:5] ##seleccionamos 5 secuencias
+seqs <- SpecimenData(taxon = "Elasmobranchii", geo = "Peru", seqs = "only")[1:5] ##we only select five sequences
 write.dna(seqs, 'secuencias.txt', format = 'fasta', nbcol = 1, colw = 90)
 ```
 ## ID_engine
 
-La función **ID_engine** nos permite encontrar los especímenes del repositorio BOLD que generan los mejores porcentajes de similitud dada una secuencia cualquiera a través de algoritmos inspirados en BLASTn. Los argumentos de esta función son `query` y `db`. El primer argumento son las secuencias problema o consulta y el segundo argumento es una de las cuatro base de datos disponibles en BOLD (i.e. `COX1`, `COX1_SPECIES`, `COX1_SPECIES_PUBLIC` y `COX1_L640bp`).
+**ID_engine** finds best matches between a query sequence and a database of BOLD by using BLASTn-based algorithms. Arguments of this function are `query` and `db`. First one are query sequences and the second one are one of avilable databases in BOLD (i.e. `COX1`, `COX1_SPECIES`, `COX1_SPECIES_PUBLIC` and `COX1_L640bp`).
 
-La función es la siguiente:
+The function is the following:
 ```R
 library(ape)
 library(XML)
@@ -232,12 +237,14 @@ ID_engine<- function(query, db, ...){
 }
 ```
 
-Si queremos tener la identificación a nivel de especie, por ejemplo, de las secuencias guardadas en [secuencias.txt](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/secuencias.txt), podemos usar el siguiente código:
+If we want to identify at species level, for instance, all sequence samples stored in [secuencias.txt](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/secuencias.txt), we should run forthcoming lines:
 
 ```R
 out <- ID_engine(query = read.FASTA('secuencias.txt'), db = "COX1_SPECIES")
+
 ```
-Vemos las 7 primeras filas y las columnas 1, 5 y 6 de cada elemento de la lista de resultados `out`:
+First seven rows and first, fifth and sixth columns of each element from the result list `out` are shown:
+
 ```R
 lapply(out, function(x){
         x[1:7, c(1,5,6)]
