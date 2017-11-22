@@ -243,7 +243,7 @@ If we want to identify at species level, for instance, all sequence samples stor
 out <- ID_engine(query = read.FASTA('secuencias.txt'), db = "COX1_SPECIES")
 
 ```
-First seven rows and first, fifth and sixth columns of each element from the result list `out` are shown:
+First seven rows and first, fifth and sixth column of each element from the result list `out` are shown:
 
 ```R
 lapply(out, function(x){
