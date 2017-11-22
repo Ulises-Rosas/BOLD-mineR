@@ -7,7 +7,7 @@
 We can take advantage of names stored in a metadata to rename by default names from a Sanger sequencing (i.e. \*.ab1 files). Therein we upload `metadata.txt` in the R console: 
 ```R
 meta = read.table('metadata.txt', header = T, sep = "\t")
-meta2 = data.frame(cod = meta$Código, pocillo = meta$poccillo, stringsAsFactors = F)
+meta2 = data.frame(cod = meta$Code, pocillo = meta$well, stringsAsFactors = F)
 head(meta2)
 ```
 ```
@@ -300,4 +300,135 @@ $`ANGBF10917-15|Alopias pelagicus|COI-5P|KJ146026`
 5   ESHKB031-07       Alopias pelagicus     0.9985
 6   ESHKB034-07       Alopias pelagicus     0.9985
 7 ANGBF11723-15       Alopias pelagicus     0.9984
+```
+## addAudition
+
+This function adds an **audition** step (Oliveira _et al._ 2016) to each specimen selected in the `ID_engine()` given a certain threshold. This function, however, uses other function called `AuditionBarcodes()`: 
+```R
+AuditionBarcodes<- function(species, matches){
+        frames = lapply(species, function(x){
+                meta.by.barcodes1 = SpecimenData(taxon = x) %>%
+                        select(processid, bin_uri, species_name) %>%
+                        mutate_if(is.factor, as.character) %>%
+                        filter(grepl("BOLD", bin_uri))
+                if(nrow(meta.by.barcodes1) <= 3){
+                        data.frame(Grades = "D",
+                                   Observations = paste("There were ",
+                                                        matches ,
+                                                        " matches. Insufficient data.",
+                                                        sep = ""))
+                        }else{
+                                if(length(unique(meta.by.barcodes1$bin_uri)) > 1){
+                                bin = lapply(unique(meta.by.barcodes1$bin_uri), function(x){
+                                        SpecimenData(bin = x) %>%
+                                                select(species_name) %>%
+                                                filter(grepl(" ",species_name), !grepl(" sp.",species_name)) %>%
+                                                group_by(species_name) %>% summarise()
+                                })
+                                
+                                if(length(unique(do.call('rbind', bin)$species_name)) > 1){
+                                        data.frame(Grades = "E**",
+                                                   Observations = paste("There were ",
+                                                                        matches ,
+                                                                        " matches. More than one BIN and these are shared with different species.",
+                                                                        sep = ""))
+                                }else{
+                                        data.frame(Grades = "C*",
+                                                   Observations = paste("There were ", matches,
+                                                                        " matches. Assessment of intraspecific divergences is still needed.",
+                                                                        sep = ""))
+                                }
+                        }
+                        else{
+                                unique.bin = SpecimenData(bin = unique(meta.by.barcodes1$bin_uri)) %>%
+                                        select(species_name, institution_storing) %>%
+                                        filter(grepl(" ",species_name), !grepl(" sp.",species_name)) %>%
+                                        group_by(species_name, institution_storing) %>% summarise()
+                                
+                                if(length(unique(unique.bin$species_name)) == 1 &&
+                                   length(unique(unique.bin$institution_storing)) > 1){
+                                        data.frame(Grades = "A",
+                                                   Observations = paste("There were ", matches ,
+                                                                        " matches. External congruence.", sep = ""))
+                                }else if(length(unique(unique.bin$species_name)) == 1){
+                                        data.frame(Grades = "B",
+                                                   Observations = paste("There were ",
+                                                                        matches ,
+                                                                        " matches. Internal congruence.", sep = ""))
+                                }else{
+                                        data.frame(Grades = "E*",
+                                                   Observations = paste("There were ", matches,
+                                                                        " matches. ", paste(unique(bins$species_name),
+                                                                                            collapse = ","),
+                                                                        " shared the same BIN.",
+                                                                        sep = ""))
+                                }
+                        }
+                }
+        })
+        return(do.call('rbind', frames))
+}
+```
+Finally,  `addAudition` is composed by these lines:
+
+```R
+addAudition <- function(seqs, threshold){
+        lista2 = list()
+        pb <- txtProgressBar(min = 0, max = length(seqs), style = 3, char = "*")
+        for(i in 1:length(seqs)){
+                Sys.sleep(0.0001)
+                tmp = ID_engine(seqs[i], db = "COX1_SPECIES")
+                tmp = tmp[[1]] %>%
+                        select(ID, taxonomicidentification, similarity) %>%
+                        filter(grepl(" ", taxonomicidentification), !grepl(" sp.",taxonomicidentification)) %>%
+                        mutate(similarity = as.numeric(as.character(similarity)))
+                if(tmp[1,]$similarity < threshold){
+                        lista2[[i]] = data.frame(Match = "Any",
+                                                 Species = "",
+                                                 Grades = "",
+                                                 Observations = paste("Three best matches: ",
+                                                                      tmp$taxonomicidentification[1], " (", tmp$similarity[1],"), ",
+                                                                      tmp$taxonomicidentification[2], " (", tmp$similarity[2],"), ",
+                                                                      tmp$taxonomicidentification[3], " (", tmp$similarity[3],").", sep = ""))
+                }else{
+                        tmp = tmp %>% filter(similarity > threshold)
+                        barcodes = sort(
+                                table(as.character(tmp$taxonomicidentification)),
+                                decreasing = T)
+                        if(length(barcodes) > 1){
+                                vec <- vector('character')
+                                for(k in 1:length(barcodes)){
+                                        vec[k] = paste(names(barcodes[k])," (",barcodes[k],")", sep = "")
+                                }
+                                lista2[[i]] = data.frame(Match = "Ambiguous",
+                                                         Species = paste(vec, collapse = ", "),
+                                                         Grades = paste(paste(AuditionBarcodes(species = names(barcodes),
+                                                                                               matches = sum(barcodes))$Grades,
+                                                                              collapse = ", ")," respectively.",sep = ""),
+                                                         Observations = "")
+                        }else{
+                                lista2[[i]] = data.frame(Match = "Unique",
+                                                         Species = paste(names(barcodes)),
+                                                         AuditionBarcodes(species = names(barcodes),
+                                                                          matches = sum(barcodes)))
+                        }
+                        setTxtProgressBar(pb, i)
+                }
+        }
+        close(pb)
+        return(data.frame(Samples = names(seqs), do.call('rbind', lista2)))
+}
+```
+In order to test its efficiency, we conduct a species identification of samples stored in [secuencias.txt](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/secuencias.txt) using a `threshold = 0.99`:
+
+
+```R
+addAudition(seqs = read.FASTA('secuencias.txt'), threshold = 0.99)
+  |**********************************************************************************************************************************************| 100%
+                                          Samples  Match           Species Grades                                Observations
+1 ANGBF10913-15|Alopias pelagicus|COI-5P|KJ146022 Unique Alopias pelagicus      A There were 44 matches. External congruence.
+2 ANGBF10914-15|Alopias pelagicus|COI-5P|KJ146023 Unique Alopias pelagicus      A There were 34 matches. External congruence.
+3 ANGBF10915-15|Alopias pelagicus|COI-5P|KJ146024 Unique Alopias pelagicus      A There were 70 matches. External congruence.
+4 ANGBF10916-15|Alopias pelagicus|COI-5P|KJ146025 Unique Alopias pelagicus      A There were 34 matches. External congruence.
+5 ANGBF10917-15|Alopias pelagicus|COI-5P|KJ146026 Unique Alopias pelagicus      A There were 40 matches. External congruence.
 ```
