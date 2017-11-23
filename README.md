@@ -303,8 +303,10 @@ $`ANGBF10917-15|Alopias pelagicus|COI-5P|KJ146026`
 ```
 ## addAudition
 
-This function adds an **audition** step (Oliveira _et al._ 2016) to each specimen selected in the `ID_engine()` given a certain threshold. This function, in turn, uses other function called `AuditionBarcodes()`: 
+This function adds an **audition** step (Oliveira _et al._ 2016) to each specimen selected in the `ID_engine()` given a certain threshold. This function, in turn, uses another function called `AuditionBarcodes()`: 
 ```R
+library(dplyr)
+
 AuditionBarcodes<- function(species, matches){
         frames = lapply(species, function(x){
                 meta.by.barcodes1 = SpecimenData(taxon = x) %>%
@@ -372,6 +374,8 @@ AuditionBarcodes<- function(species, matches){
 Finally,  `addAudition` is composed by these lines:
 
 ```R
+library(dplyr)
+
 addAudition <- function(seqs, threshold){
         lista2 = list()
         pb <- txtProgressBar(min = 0, max = length(seqs), style = 3, char = "*")
