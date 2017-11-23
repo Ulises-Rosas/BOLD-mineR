@@ -2,7 +2,7 @@
 
 
 
-## Renamed chromatograms
+## Renaming chromatograms
 
 We can take advantage of names stored in a metadata to rename by default names from a Sanger sequencing (i.e. \*.ab1 files). Therein we upload `metadata.txt` in the R console: 
 ```R
@@ -303,7 +303,7 @@ $`ANGBF10917-15|Alopias pelagicus|COI-5P|KJ146026`
 ```
 ## addAudition
 
-This function adds an **audition** step (Oliveira _et al._ 2016) to each specimen selected in the `ID_engine()` given a certain threshold. This function, in turn, uses another function called `AuditionBarcodes()`: 
+This function adds an **audition** step (Oliveira _et al._ 2016) to each selected specimen by `ID_engine()`, given a certain threshold. This function, in turn, uses another function called `AuditionBarcodes()`: 
 ```R
 library(dplyr)
 
