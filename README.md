@@ -360,7 +360,7 @@ AuditionBarcodes<- function(species, matches){
                                 }else{
                                         data.frame(Grades = "E*",
                                                    Observations = paste("There were ", matches,
-                                                                        " matches. ", paste(unique(bins$species_name),
+                                                                        " matches. ", paste(unique(unique.bin$species_name),
                                                                                             collapse = ","),
                                                                         " shared the same BIN.",
                                                                         sep = ""))
