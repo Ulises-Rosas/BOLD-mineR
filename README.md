@@ -391,7 +391,9 @@ AuditionBarcodes<- function(species, matches){ ##function for only using with pu
                         strsplit(x = ., split = ",") %>% .[[1]] %>%
                         strsplit(x = ., split = "\\:") %>%
                         lapply(., function(x){
-                                tmp = x[!grepl("NCBI", x[1]) | !grepl("*unvouchered", x[1]) ]
+                                tmp = x[!grepl("Mined from GenBank", x[1]) &
+                                                !grepl(" NCBI", x[1]) &
+                                                !grepl("*unvouchered", x[1])]
                                 data.frame(institutions = tmp[1], records = as.numeric(tmp[2]))
                                 }) %>%
                         do.call("rbind", .) %>%
@@ -419,7 +421,7 @@ AuditionBarcodes<- function(species, matches){ ##function for only using with pu
 
                                 bin = lapply(unique(meta.by.barcodes1$bin_uri), function(x){
                                         SpecimenData(bin = x) %>%
-                                                dplyr::select(species_name, institution_storing, country, identification_provided_by)  %>%
+                                                dplyr::select(species_name, institution_storing)  %>%
                                                 dplyr::filter(
                                                         grepl(" ",species_name),
                                                         !grepl("Mined from GenBank, NCBI", institution_storing),
@@ -442,11 +444,10 @@ AuditionBarcodes<- function(species, matches){ ##function for only using with pu
                                 else{
                                         data.frame(Grades = "C*",
                                                    Observations = paste("There were ", matches,
-                                                                        " matches. Assessment of intraspecific
-                                                                        divergences is still needed.",
+                                                                        " matches. Assessment of intraspecific divergences is still needed.",
                                                                         sep = ""))
                                 }
-                                
+
                         }
                         else{
                                 unique.bin = SpecimenData(bin = unique(meta.by.barcodes1$bin_uri)) %>%
@@ -481,7 +482,7 @@ AuditionBarcodes<- function(species, matches){ ##function for only using with pu
                                 }
                         }
                 }
-                
+
         })
         return(do.call('rbind', frames))
 }
@@ -494,9 +495,9 @@ library(dplyr)
 addAudition <- function(seqs, threshold){
         lista2 = list()
         pb <- txtProgressBar(min = 0, max = length(seqs), style = 3, char = "*")
-        
+
         for(i in 1:length(seqs)){
-                
+
                 Sys.sleep(0.0001)
 
                 tmp = ID_engine(seqs[i], db = "COX1_SPECIES")
