@@ -226,13 +226,73 @@ library(ape)
 library(XML)
 
 ID_engine<- function(query, db, ...){
+
         seqs <- lapply(query, function(x){
                 paste(as.character.DNAbin(x), collapse = "")})
-        
+
         lapply(seqs, function(x){
+
                 data <- xmlParse( paste("http://www.boldsystems.org/index.php/Ids_xml?db=",
                                         db, "&sequence=", x, sep = ""))
-                xmlToDataFrame(data)
+
+                bold.results = xmlToDataFrame(data)
+
+                if(nrow(bold.results) == 0){
+
+                        rid <- RCurl::getURL(
+                                paste("https://blast.ncbi.nlm.nih.gov/blast/Blast.cgi?CMD=Put&PROGRAM=blastn&MEGABLAST=on&DATABASE=nt&QUERY=",
+                                      x,"&WORD_SIZE=28&HITLIST_SIZE=3", sep = "")) %>%
+                                gsub(".*\"RID\" value=\"", "", x =.) %>%
+                                gsub("\".*","", x =.)
+
+
+                        if(rid == "")
+                                return(data.frame(ID = "GenBank: RID not available",
+                                                  taxonomicidentification = "RID not available.",
+                                                  similarity = 0))
+
+                        hits = list()
+
+                        while( all(is.na(hits)) ){
+
+                                tmp.output = RCurl::getURL(
+                                        paste("https://blast.ncbi.nlm.nih.gov/blast/Blast.cgi?CMD=Get&FORMAT_TYPE=XML&RID=",
+                                              rid, sep = "")) %>%
+                                        strsplit(x = ., split = "<Hit>\n")
+                                hits = tmp.output[[1]][2:4]
+                                Sys.sleep(5)
+                                }
+
+                        genbank.results = lapply(hits, function(e){
+                                
+                                data.frame( ID = gsub(".*<Hit_id>", "", e) %>%
+                                                    gsub("</Hit_id>\n.*", "", x =.) %>%
+                                                    gsub("\\|", "", x =.) %>%
+                                                    strsplit(x =., split = "gb") %>%
+                                                    tail(x =.[[1]], n = 1) %>%
+                                                    paste("GenBank: ", . ,sep = ""),
+
+                                            taxonomicidentification = gsub(".*<Hit_def>", "", e) %>%
+                                                    gsub("</Hit_def>.*", "", x =.) %>%
+                                                    strsplit(x =. , split = " ") %>%
+                                                    head(x =.[[1]], n = 2) %>%
+                                                    paste(., collapse = " "),
+
+                                            similarity = round(
+                                                    gsub(".*<Hsp_identity>", "", e) %>%
+                                                            gsub("</Hsp_identity>.*", "", x =.) %>%
+                                                            as.numeric(.) / gsub(".*<Hsp_align-len>", "", e) %>%
+                                                            gsub("</Hsp_align-len>.*", "", x =.) %>%
+                                                            as.numeric(.) ,
+                                                    digits = 4)
+                                            )
+                                })
+                        return(
+                                do.call("rbind", genbank.results))
+                        }
+                else{
+                        return(bold.results)
+                        }
         })
 }
 ```
@@ -307,57 +367,111 @@ This function adds an **audition** step (Oliveira _et al._ 2016) to each selecte
 ```R
 library(dplyr)
 
-AuditionBarcodes<- function(species, matches){
+AuditionBarcodes<- function(species, matches){ ##function for only using with public data
         frames = lapply(species, function(x){
+
                 meta.by.barcodes1 = SpecimenData(taxon = x) %>%
-                        select(processid, bin_uri, species_name) %>%
-                        mutate_if(is.factor, as.character) %>%
-                        filter(grepl("BOLD", bin_uri))
-                if(nrow(meta.by.barcodes1) <= 3){
+                        dplyr::select(processid, bin_uri, species_name, institution_storing) %>%
+                        dplyr::mutate_if(is.factor, as.character) %>%
+                        dplyr::filter(grepl("BOLD", bin_uri),
+                                      !grepl("Mined from GenBank, NCBI", institution_storing),
+                                      !grepl("*unvouchered", institution_storing))
+
+
+                js0 = getURL(
+                        paste("http://www.boldsystems.org/index.php/API_Tax/TaxonSearch?taxName=",
+                              gsub(" ","%20", x), sep = "")
+                        ) %>%
+                        gsub('.*\"taxid\":', "", x = .) %>%
+                        gsub(',\"taxon\".*', "", x = .) %>%
+                        paste("http://www.boldsystems.org/index.php/API_Tax/TaxonData?taxId=", . ,
+                              "&dataTypes=all", sep = "") %>% getURL(url = .) %>%
+                        gsub('.*\"depositry\":\\{', "", x = .) %>%
+                        gsub('\\}.*', "", x = .) %>% gsub('\"', "", x = .) %>%
+                        strsplit(x = ., split = ",") %>% .[[1]] %>%
+                        strsplit(x = ., split = "\\:") %>%
+                        lapply(., function(x){
+                                tmp = x[!grepl("NCBI", x[1]) | !grepl("*unvouchered", x[1]) ]
+                                data.frame(institutions = tmp[1], records = as.numeric(tmp[2]))
+                                }) %>%
+                        do.call("rbind", .) %>%
+                        .[!is.na(.$records),]
+
+                if(nrow(meta.by.barcodes1) == 0 && sum(js0$records, na.rm = T) == 0){
+                        data.frame(Grades = "F",
+                                   Observations = paste("There were ",
+                                                        matches ,
+                                                        " matches. Barcodes mined from GenBank, NCBI.",
+                                                        sep = ""))
+                        }
+                else if(nrow(meta.by.barcodes1) <= 3 && sum(js0$records, na.rm = T) != 0){
                         data.frame(Grades = "D",
                                    Observations = paste("There were ",
                                                         matches ,
-                                                        " matches. Insufficient data.",
+                                                        " matches. Insufficient data. Institution storing: ",
+                                                        length(js0$institutions),
+                                                        ". Specimen records: ",
+                                                        sum(js0$records, na.rm = T),
                                                         sep = ""))
-                        }else{
-                                if(length(unique(meta.by.barcodes1$bin_uri)) > 1){
+                        }
+                else{
+                        if(length(unique(meta.by.barcodes1$bin_uri)) > 1){
+
                                 bin = lapply(unique(meta.by.barcodes1$bin_uri), function(x){
                                         SpecimenData(bin = x) %>%
-                                                select(species_name) %>%
-                                                filter(grepl(" ",species_name), !grepl(" sp.",species_name)) %>%
-                                                group_by(species_name) %>% summarise()
+                                                dplyr::select(species_name, institution_storing, country, identification_provided_by)  %>%
+                                                dplyr::filter(
+                                                        grepl(" ",species_name),
+                                                        !grepl("Mined from GenBank, NCBI", institution_storing),
+                                                        !grepl("*unvouchered", institution_storing),
+                                                        !grepl(" sp.",species_name)
+                                                ) %>%
+                                                dplyr::group_by(species_name) %>% dplyr::summarise()
                                 })
-                                
+
                                 if(length(unique(do.call('rbind', bin)$species_name)) > 1){
+
+
                                         data.frame(Grades = "E**",
                                                    Observations = paste("There were ",
                                                                         matches ,
-                                                                        " matches. More than one BIN and these are shared with different species.",
-                                                                        sep = ""))
-                                }else{
-                                        data.frame(Grades = "C*",
-                                                   Observations = paste("There were ", matches,
-                                                                        " matches. Assessment of intraspecific divergences is still needed.",
+                                                                        " matches. Mixtured BIN and it's composed by species such as: ",
+                                                                        paste(unique(do.call('rbind', bin)$species_name), collapse = ", "),
                                                                         sep = ""))
                                 }
+                                else{
+                                        data.frame(Grades = "C*",
+                                                   Observations = paste("There were ", matches,
+                                                                        " matches. Assessment of intraspecific
+                                                                        divergences is still needed.",
+                                                                        sep = ""))
+                                }
+                                
                         }
                         else{
                                 unique.bin = SpecimenData(bin = unique(meta.by.barcodes1$bin_uri)) %>%
-                                        select(species_name, institution_storing) %>%
-                                        filter(grepl(" ",species_name), !grepl(" sp.",species_name)) %>%
-                                        group_by(species_name, institution_storing) %>% summarise()
-                                
+                                        dplyr::select(species_name, institution_storing) %>%
+                                        dplyr::filter(grepl(" ",species_name),
+                                                      !grepl("Mined from GenBank, NCBI", institution_storing),
+                                                      !grepl("*unvouchered", institution_storing),
+                                                      !grepl(" sp.",species_name)) %>%
+                                        dplyr::group_by(species_name, institution_storing) %>%
+                                        dplyr::summarise()
+
                                 if(length(unique(unique.bin$species_name)) == 1 &&
-                                   length(unique(unique.bin$institution_storing)) > 1){
+                                   length(unique(unique.bin$institution_storing)) > 1 ){
                                         data.frame(Grades = "A",
                                                    Observations = paste("There were ", matches ,
                                                                         " matches. External congruence.", sep = ""))
-                                }else if(length(unique(unique.bin$species_name)) == 1){
+                                }
+                                else if(length(unique(unique.bin$species_name)) == 1 &&
+                                         length(unique(unique.bin$institution_storing)) == 1){
                                         data.frame(Grades = "B",
                                                    Observations = paste("There were ",
                                                                         matches ,
                                                                         " matches. Internal congruence.", sep = ""))
-                                }else{
+                                }
+                                else{
                                         data.frame(Grades = "E*",
                                                    Observations = paste("There were ", matches,
                                                                         " matches. ", paste(unique(unique.bin$species_name),
@@ -367,6 +481,7 @@ AuditionBarcodes<- function(species, matches){
                                 }
                         }
                 }
+                
         })
         return(do.call('rbind', frames))
 }
@@ -379,22 +494,43 @@ library(dplyr)
 addAudition <- function(seqs, threshold){
         lista2 = list()
         pb <- txtProgressBar(min = 0, max = length(seqs), style = 3, char = "*")
+        
         for(i in 1:length(seqs)){
+                
                 Sys.sleep(0.0001)
+
                 tmp = ID_engine(seqs[i], db = "COX1_SPECIES")
+
+
                 tmp = tmp[[1]] %>%
-                        select(ID, taxonomicidentification, similarity) %>%
-                        filter(grepl(" ", taxonomicidentification), !grepl(" sp.",taxonomicidentification)) %>%
+                        select(ID, taxonomicidentification, similarity ) %>%
+                        filter(grepl(" ", taxonomicidentification)) %>%
                         mutate(similarity = as.numeric(as.character(similarity)))
-                if(tmp[1,]$similarity < threshold){
+
+                if(!grepl("GenBank", as.character(tmp[1,]$ID))){
+                        tmp = tmp %>%
+                                filter(!grepl(" sp.",taxonomicidentification))
+                }
+
+                if(tmp[1,]$similarity < threshold || grepl("GenBank", as.character(tmp[1,]$ID)) ){
+
                         lista2[[i]] = data.frame(Match = "Any",
                                                  Species = "",
                                                  Grades = "",
-                                                 Observations = paste("Three best matches: ",
-                                                                      tmp$taxonomicidentification[1], " (", tmp$similarity[1],"), ",
-                                                                      tmp$taxonomicidentification[2], " (", tmp$similarity[2],"), ",
-                                                                      tmp$taxonomicidentification[3], " (", tmp$similarity[3],").", sep = ""))
-                }else{
+                                                 Observations =  if(grepl("RID", as.character(tmp[1,]$ID))){
+                                                         paste("RID not available.")}
+                                                 else{
+                                                         paste(
+                                                                 if(grepl("GenBank", as.character(tmp[1,]$ID))){
+                                                                         "GenBank: "}
+                                                                 else{"BOLD: "},
+                                                                 tmp$taxonomicidentification[1]," (", tmp$similarity[1], "), ",
+                                                                 tmp$taxonomicidentification[2]," (", tmp$similarity[2], "), ",
+                                                                 tmp$taxonomicidentification[3]," (", tmp$similarity[3],").",
+                                                                 sep = "")}
+                        )
+                }
+                else{
                         tmp = tmp %>% filter(similarity > threshold)
                         barcodes = sort(
                                 table(as.character(tmp$taxonomicidentification)),
@@ -410,7 +546,8 @@ addAudition <- function(seqs, threshold){
                                                                                                matches = sum(barcodes))$Grades,
                                                                               collapse = ", ")," respectively.",sep = ""),
                                                          Observations = "")
-                        }else{
+                        }
+                        else{
                                 lista2[[i]] = data.frame(Match = "Unique",
                                                          Species = paste(names(barcodes)),
                                                          AuditionBarcodes(species = names(barcodes),
@@ -422,6 +559,7 @@ addAudition <- function(seqs, threshold){
         close(pb)
         return(data.frame(Samples = names(seqs), do.call('rbind', lista2)))
 }
+
 ```
 In order to test its efficiency, species-level identification of samples stored in [secuencias.txt](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/secuencias.txt) using a `threshold = 0.99` is conducted:
 
