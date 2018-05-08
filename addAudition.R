@@ -46,3 +46,5 @@ addAudition <- function(seqs, threshold){
   close(pb)
   return(data.frame(Samples = names(seqs), do.call('rbind', lista2)))
 }
+
+##new line from rstudio
