@@ -2,7 +2,7 @@ import re
 import urllib
 import pandas as pd
 import argparse
-##please delete me later on
+
 parser = argparse.ArgumentParser(description='Short module for getting insights about DNA barcode given a list of species')
 
 parser.add_argument('fastq', metavar='SpeciesList',
