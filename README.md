@@ -193,7 +193,7 @@ $`ANGBF10917-15|Alopias pelagicus|COI-5P|KJ146026`
 ```
 ## addAudition
 
-This function adds an **audition** step [Oliveira _et al._ 2016](https://onlinelibrary.wiley.com/doi/full/10.1111/jfb.13169) to each selected specimen by `ID_engine()` (see above), given a certain threshold. This function, in turn, uses another function called `AuditionBarcodes()`. This last one has two version. The first one is coupled with `ID_engine()` and the second one is `ID_engine()`-independent and also normalizes species names by taking accepted names from [Worms](http://www.marinespecies.org/) database.
+This function adds an **audition** step [Oliveira _et al._ 2016](https://onlinelibrary.wiley.com/doi/full/10.1111/jfb.13169) to each selected specimen by `ID_engine()` (see above), given a certain threshold. This function, in turn, uses another function called `AuditionBarcodes()`. This last one has two version. The first one is coupled with `addAudition()` and the second one is `addAudition()`-independent and also normalizes species names by taking accepted names from [Worms](http://www.marinespecies.org/) database.
 
 
 Both versions of `AuditionBarcodes()` can be found here:
@@ -201,7 +201,7 @@ Both versions of `AuditionBarcodes()` can be found here:
 * [AuditionBarcodes](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/AuditionBarcodes.R)
 * [AuditionBarcodes.v.2](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/AuditionBarcode.v.2.R) which in turn is coupled with [worms.py](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/worms.py)
 
-`ID_engine()` function can be found here: 
+`addAudition()` function can be found here: 
 
 * [ID_engine](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/ID_engine.R)
 
