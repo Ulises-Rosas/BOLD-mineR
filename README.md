@@ -1,70 +1,9 @@
 # BOLD-mineR
 
+DNA barcode insights no only is used by researchers, but also by decision-makers for their corresponding projects such as those for food fraud or illegal species commercialization. Conversely to its big-scaled demand of both online services and information, there are few ways to automatize either species identification or assessment of barcode quality per species directly from the web interface. 
 
+[BOLD system](http://www.boldsystems.org/) is the main database of DNA barcode worldwide. This database has been stepply  growing through time since its release ([Ratnasingham and Hebert 2007](https://onlinelibrary.wiley.com/doi/full/10.1111/j.1471-8286.2007.01678.x)) and its accessibility is pivotal for projects regards DNA barcodes. Nowdays APIs, to some extant, are offering access to well-know databases such as [FishBase](https://fishbase.ropensci.org/), [Worms](http://www.marinespecies.org/rest/) or [BOLD](http://www.boldsystems.org/index.php/api_home). Depite of BOLD's API mostly involve public data only, this leverages its data retrieving for wider purposes. The API's applicability, however,  seems to be wholly held up by its own needs of having either standalone softwares or functions which could wrap up blocks of information. The main objective of these functions (i.e. BOLD-mineR's functions) is justly circumscribe the BOLD's API performance with a of R-based scripts to get insights about DNA barcodes by using public information.
 
-## Renaming chromatograms
-
-We can take advantage of names stored in a metadata to rename by default names from a Sanger sequencing (i.e. \*.ab1 files). Therein we upload `metadata.txt` in the R console: 
-```R
-meta = read.table('metadata.txt', header = T, sep = "\t")
-meta2 = data.frame(cod = meta$Code, pocillo = meta$well, stringsAsFactors = F)
-head(meta2)
-```
-```
-cod well
-1 TP_001      A1
-2 TP_002      A2
-3 TP_003      A3
-4 TP_004      A4
-5 TP_005      A5
-6 TP_006      A6
-```
-Then, we use this information to rename Forward chromatograms:
-```R
-
-stringF = list.files(pattern = "M13F-21.ab1") ## find a forward-based pattern in my working directory
-newnamesF = vector("character") ##vector where new names will be stored
-oldnamesF = vector("character") ##vector where original names will be stored while it runs the loop
-
-for(i in 1:length(meta2$well)){ ##loop
-        ##we modify the 'well' column to ensure matches
-        pocillo = paste(as.character(meta2$well), "_", sep = "") 
-        newnamesF[i] <- gsub(   
-                paste("FISH_P1-", pocillo[i], sep = ""),
-                paste(as.character(meta2$cod)[i], "_", sep = ""),
-                grep(pocillo[i],stringF, value = T) ##find for matches between well and chromatograms' names
-        )
-        oldnamesF[i] <- grep(pocillo[i], stringF, value = T)
-}
-
-file.rename(from = oldnamesF, to = newnamesF)
-```
-and likewise for Reverse chromatograms:
-```R
-stringR = list.files(pattern = "M13R-27.ab1") ## find a forward-based pattern in my working directory
-
-newnamesR = vector("character") ##vector where new names will be stored
-oldnamesR = vector("character") ##vector where original names will be stored while it runs the loop
-
-for(i in 1:length(meta2$pocillo)){##loop
-        ##we modify the 'well' column to ensure matches
-        pocillo = paste(as.character(meta2$pocillo), "_", sep = "") 
-        newnamesR[i] <- gsub( 
-                paste("FISH_P1-", pocillo[i], sep = ""),
-                paste(as.character(meta2$cod)[i], "_", sep = ""),
-                grep(pocillo[i],stringR, value = T)##find for matches between well and chromatograms' names
-        )
-        oldnamesR[i] <- grep(pocillo[i], stringR, value = T)
-}
-
-file.rename(from = oldnamesR, to = newnamesR)
-```
-if on both runs suddenly appear a message like this:
-```
-Error in newnamesF[i] <- gsub(paste("FISH_P1-", pocillo[i], sep = ""),  : 
-  replacement has length zero
-```
-There was not a fully correspondence between all names from `meta2$well` vector and chromatograms available in the current working directory.
 
 ## SpecimenData 
 
@@ -78,49 +17,8 @@ This function **SpecimenData** let us mine associated metadata from any specimen
 * `researchers` (including identifiers and collectors).
 * `geo` (e.g. Peru).
 
-The function is the following:
+You can find this function here: [SpecimenData](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/SpecimenData.R)
 
-```R
-library(RCurl)
-library(ape)
-library(data.table)
-
-SpecimenData <- function(taxon, ids, bin, container,
-                         institutions, researchers, geo, ...){
-        input <- data.frame(
-                names = names(as.list(environment())),
-                args = sapply(as.list(environment()), paste),
-                stringsAsFactors = F
-        )
-        
-        #text <- RCurl::getURL(
-        URLtxt <- paste(if(list(...)[1] == "only"){
-                "http://www.boldsystems.org/index.php/API_Public/sequence?"}
-                else{if(list(...)[1] == "combined"){
-                        "http://www.boldsystems.org/index.php/API_Public/combined?"}
-                        else{
-                                "http://www.boldsystems.org/index.php/API_Public/specimen?"}
-                },
-                paste(
-                        paste(input[!(input$args == ""),]$names,
-                              "=",
-                              sapply(input[!(input$args == ""),]$args, function(x){
-                                      if(length(strsplit(x, " ")[[1]]) > 1){
-                                              paste(gsub(" ", "%20", x), "&", sep = "")
-                                      }else{paste(x, "&", sep = "")}}
-                              ),
-                              sep = ""),
-                        collapse = ""),
-                "format=tsv",
-                sep = "")
-        text <- RCurl::getURL(URLtxt)
-        
-        if(list(...)[1] == "only")
-                return(ape::read.FASTA(textConnection(text)))
-        
-        data.table::fread(text)
-}
-```
 If we want to get information, for instance, from all specimens of elasmobranchs distributed in Peru and stored in BOLD, we can use the following line:
 ```R
 specimendata <- SpecimenData(taxon = "Elasmobranchii", geo = "Peru")
