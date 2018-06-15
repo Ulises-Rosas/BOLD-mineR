@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-#import re
-#import urllib
+import re
+import urllib
 
 
 class worms:
