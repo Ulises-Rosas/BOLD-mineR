@@ -9,6 +9,7 @@ import re
 import urllib
 ")
 
+source_python("worms.py", convert = F)
 
 AuditionBarcodes <- function(species){ ##function for only using with public data
 
