@@ -1,3 +1,5 @@
+library(dplyr)
+
 AuditionBarcodes<- function(species, matches){ ##function for only using with public data
         frames = lapply(species, function(x){
 
