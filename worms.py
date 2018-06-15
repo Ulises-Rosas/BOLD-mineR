@@ -64,5 +64,3 @@ class worms:
             self.accepted_name = self.taxon.replace("%20", " ")
 
             return self.accepted_name
-
-worms("Manta birostis").get_accepted_name()
