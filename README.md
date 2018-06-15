@@ -193,7 +193,7 @@ $`ANGBF10917-15|Alopias pelagicus|COI-5P|KJ146026`
 ```
 ## addAudition
 
-This function adds an **audition** step [Oliveira _et al._ 2016](https://onlinelibrary.wiley.com/doi/full/10.1111/jfb.13169) to each selected specimen by `ID_engine()` (see above), given a certain threshold. This function, in turn, uses another function called `AuditionBarcodes()`. This last one has two version. The first one is coupled with `addAudition()` and the second one is `addAudition()`-independent and also normalizes species names by taking accepted names from [Worms](http://www.marinespecies.org/) database.
+This function adds an **audition** step ([Oliveira _et al._ 2016](https://onlinelibrary.wiley.com/doi/full/10.1111/jfb.13169)) to each selected specimen by `ID_engine()` (see above), given a certain threshold. This function, in turn, uses another function called `AuditionBarcodes()`. This last one has two version. The first one is coupled with `addAudition()` and the second one is `addAudition()`-independent and also normalizes species names by taking accepted names from [Worms](http://www.marinespecies.org/) database.
 
 
 Both versions of `AuditionBarcodes()` can be found here:
