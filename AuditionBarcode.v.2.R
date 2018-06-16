@@ -2,20 +2,29 @@ library(RCurl)
 library(dplyr)
 
 library(reticulate)
-use_python("/usr/local/bin/python3.6") #define your python version
+use_python("/usr/local/bin/python3") #define your python version
 
-py_run_string("
-import re
-import urllib
-")
+#py_run_string("
+#import re
+#import urllib
+#")
+
+# Despite you have defined modules in you python script, regrettably 
+# you will still need to call them via import when using reticulate package:
+
+urllib <- reticulate::import("urllib", convert = F)
+#futhermore, if there is a module inside a directory, you also must to define it 
+# owing to it seems reticulate packages can deal with it directly
+urllib$request
+
+re <- reticulate::import("re", convert = F)
 
 source_python("worms.py", convert = F)
 
 
 
 AuditionBarcodes <- function(species){ ##function for only using with public data
-  
-  
+
   frames = lapply(species, function(x){
     
     meta.by.barcodes1 = SpecimenData(taxon  = x) %>%
