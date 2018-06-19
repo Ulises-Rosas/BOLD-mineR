@@ -62,7 +62,7 @@ class worms:
             page = urllib.request.urlopen(complete_url).read().decode('utf-8')
 
 
-            lines = re.findall(".*>Thais[\(A-Za-z\) ]{0,} [a-z]+<.*", page)
+            lines = re.findall(".*>"+species_binary[0]+"[\(A-Za-z\) ]{0,} [a-z]+<.*", page)
             epitopes = [re.findall("<i>[A-Z][a-z]+[\(\)A-Za-z ]{0,} [a-z]+</i>", i)[0].\
                             split(" ")[-1].\
                             replace("</i>", "") for i in lines]
