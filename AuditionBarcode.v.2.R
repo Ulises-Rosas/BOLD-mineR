@@ -147,7 +147,7 @@ AuditionBarcodes <- function(species){ ##function for only using with public dat
                                           sep = ""))
         }
         else{
-          data.frame(Grades = "C*",
+          data.frame(Grades = "C",
                      Observations = paste("Splited BIN and the assessment of intraspecific divergences is still needed.",
                                           bin_information_json,
                                           sep = ""))
