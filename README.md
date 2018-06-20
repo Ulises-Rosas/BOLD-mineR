@@ -193,7 +193,7 @@ $`ANGBF10917-15|Alopias pelagicus|COI-5P|KJ146026`
 ```
 ## addAudition
 
-This function adds an **audition** step ([Oliveira _et al._ 2016](https://onlinelibrary.wiley.com/doi/full/10.1111/jfb.13169)) to each selected specimen by `ID_engine()` (see above), given a certain threshold. This function, in turn, uses another function called `AuditionBarcodes()`. This last one has two version. The first one is coupled with `addAudition()` and the second one is `addAudition()`-independent and also normalizes species names by taking accepted names from [Worms](http://www.marinespecies.org/) database.
+This function adds an **audition** step ([Oliveira _et al._ 2016](https://onlinelibrary.wiley.com/doi/full/10.1111/jfb.13169)) to each selected specimen by `ID_engine()` (see above), given a certain threshold. This function, in turn, uses another function called `AuditionBarcodes()`. This last one has two version. The first one is coupled with `addAudition()` and the second one is `addAudition()`-independent and also normalizes species names by taking accepted names from [Worms database](http://www.marinespecies.org/).
 
 
 Both versions of `AuditionBarcodes()` can be found here:
@@ -217,3 +217,27 @@ addAudition(seqs = read.FASTA('secuencias.txt'), threshold = 0.99)
 #4 ANGBF10916-15|Alopias pelagicus|COI-5P|KJ146025 Unique Alopias pelagicus      A There were 34 matches. External congruence.
 #5 ANGBF10917-15|Alopias pelagicus|COI-5P|KJ146026 Unique Alopias pelagicus      A There were 40 matches. External congruence.
 ```
+
+#### AuditionBarcodes
+
+Despite `AuditionBarcodes()` function is coupled with `addAudition()` function, its independent version can work with just a list of names. Furthermore, there is an argument which enables to chose if sequences from GenBank are considered. It is pending, however, assess whether these sequences used to assess barcode's quality come from either a published article or direct submission:
+
+```R
+species <- c("Ceratostoma foliatum" , "Ocinebrina aciculata",
+              "Morula margariticola", "Concholepas concholepas",
+              "Nucella emarginata" ,"Thais luteostoma", "Thais bufo")
+              
+quality_assessment <- AuditionBarcodes(species, include_ncbi = F)
+
+data.frame(species, quality_assessment)
+#                  species Grades                                                         Observations                                                                                                               BIN_structure
+#1    Ceratostoma foliatum      A                                 Matched BIN with external congruence                                                                                  'BOLD:ABV5037':{'Ceratostoma foliatum':32}
+#2    Ocinebrina aciculata      B                            Matched BIN with internal congruence only                                                                                  'BOLD:ACG0291':{'Ocinebrina aciculata':18}
+#3    Morula margariticola      C                                                         Splitted BIN                                    'BOLD:AAD8263':{'Drupella margariticola':5}, 'BOLD:AAE7335':{'Drupella margariticola':1}
+#4 Concholepas concholepas      D Insufficient data. Institution storing: 1. Total specimen records: 1                                                                                                                            
+#5      Nucella emarginata     E*                                                           Merged BIN                                                                   'BOLD:ABA3756':{'Nucella emarginata':16,'Nucella lima':7}
+#6        Thais luteostoma    E**                                                         Mixtured BIN 'BOLD:ACB7390':{'Reishia bronni':3,'Reishia luteostoma':16}, 'BOLD:AAW6905':{'Reishia clavigera':11,'Reishia luteostoma':1}
+#7              Thais bufo      F                           Barcodes mined from GenBank or unvouchered                                                                                                                            
+```
+
+Please notice that grades are obtained with accepted names of species according to [Worms database](http://www.marinespecies.org/) by using the [worms.py](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/worms.py) script. Hence, since currently accepted names within `species` vector has not been figured out, unevenness between the column `BIN_structure` and `species` could pop up. For this reason, on above example, _Morula margariticola_ has another name into BIN structure column (i.e. _Drupella margariticola_) which actually is its currently accepted name.
