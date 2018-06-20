@@ -38,9 +38,8 @@ AuditionBarcodes <- function(species, include_ncbi=F){ ##function for only using
                         unlist(.) %>%
                         paste(., collapse = ", ") %>%
                         return(.)
-                }
-
-
+          }
+        
         frames = lapply(species, function(x){
           
           if(include_ncbi){
@@ -95,9 +94,10 @@ AuditionBarcodes <- function(species, include_ncbi=F){ ##function for only using
             do.call("rbind", .) %>%
             .[!is.na(.$records),]
           
-          if(nrow(meta.by.barcod) == 0 && sum(js0$records, na.rm = T) == 0){
+          if(nrow(meta.by.barcodes1) == 0 && sum(js0$records, na.rm = T) == 0){
             data.frame(Grades = "F",
-                       Observations = "Barcodes mined from GenBank or unvouchered")
+                       Observations = "Barcodes mined from GenBank or unvouchered",
+                       BIN_structure = "")
             }
           else if(nrow(meta.by.barcodes1) <= 3 && sum(js0$records, na.rm = T) != 0){
             data.frame(Grades = "D",
@@ -105,7 +105,8 @@ AuditionBarcodes <- function(species, include_ncbi=F){ ##function for only using
                                             length(js0$institutions),
                                             ". Total specimen records: ",
                                             sum(js0$records, na.rm = T),
-                                            sep = ""))
+                                            sep = ""),
+                       BIN_structure = "")
             }
           else{
             ##species and their number of records by bin:
@@ -166,24 +167,24 @@ AuditionBarcodes <- function(species, include_ncbi=F){ ##function for only using
                 dplyr::ungroup() %>%
                 dplyr::mutate_if(is.factor, as.character)
               })
-
-              # this new assignment of bin is about species number contained on list's nodes.
-              # since it is ordened by their lenghts, merging status of bin would appear first
-              bin = sapply(bin, function(x){length(x$species_name)}) %>%
-                sort(., decreasing = T) %>%
-                names(.) %>%
-                bin[.]
+            
+            # this new assignment of bin is about species number contained on list's nodes.
+            # since it is ordened by their lenghts, merging status of bin would appear first
+            bin = sapply(bin, function(x){length(x$species_name)}) %>%
+              sort(., decreasing = T) %>%
+              names(.) %>%
+              bin[.]
               
               if(length(unique(meta.by.barcodes1$bin_uri)) > 1){
                 
                 if(length(unique(do.call('rbind', bin)$species_name)) > 1){
                   data.frame(Grades = "E**",
-                             Observations = paste("Mixtured BIN and its composition in a json-like table is:",
-                                                                        bin_information_json(bin_input = bin)))
+                             Observations = "Mixtured BIN",
+                             BIN_structure = bin_information_json(bin_input = bin))
                   }else{
                     data.frame(Grades = "C",
-                             Observations = paste("Splited BIN and the assessment of intraspecific divergences is still needed.",
-                                                  bin_information_json(bin_input = bin)))
+                               Observations = "Splitted BIN",
+                               BIN_structure = bin_information_json(bin_input = bin))
                     }
                 }else{
                   
@@ -191,19 +192,21 @@ AuditionBarcodes <- function(species, include_ncbi=F){ ##function for only using
                      sum(bin[[1]]$institutes) > 1 ){
                     
                     data.frame(Grades = "A",
-                               Observations ="Matched BIN with external congruence")
+                               Observations ="Matched BIN with external congruence",
+                               BIN_structure = bin_information_json(bin_input = bin))
                     
                     }else if(length(unique(bin[[1]]$species_name)) == 1 &&
                              sum(bin[[1]]$institutes) == 1 ){
                       
                       data.frame(Grades = "B",
-                                 Observations = "Matched BIN with internal congruence only")
+                                 Observations = "Matched BIN with internal congruence only",
+                                 BIN_structure = bin_information_json(bin_input = bin))
                       
                       }else{
                         
                         data.frame(Grades = "E*",
-                                   Observations = paste("Merged BIN and its composition in a json-like table is:",
-                                                        bin_information_json(bin_input = bin)))
+                                   Observations = "Merged BIN",
+                                   BIN_structure = bin_information_json(bin_input = bin))
                       }
                 }
               }
