@@ -291,11 +291,11 @@ class Fishbase:
                 ## country
                 ctry_pattern = "<td width='10.5%'>[\r\t]+"
 
-                pre_country = re.findall(ctry_pattern + "[A-Z][A-Za-z\-() ]{0,}", page2)
+                pre_country = re.findall(ctry_pattern + "[A-Z]{0,1}[A-Za-z\-() ]{0,}", page2)
 
                 country = [
                     re.sub('^$', "NA",
-                           re.sub(".*\\t([A-Z][A-Za-z\-() ]{0,})", "\\1", i)) for i in pre_country
+                           re.sub(".*\\t([A-Z]{0,1}[A-Za-z\-() ]{0,})", "\\1", i)) for i in pre_country
                 ]
 
                 ## sample size
