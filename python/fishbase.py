@@ -5,11 +5,11 @@ import argparse
 parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                  description='''\
                                  
-        Short module for getting insights about FishBase metadata given a list of species
-        =================================================================================
-        ><{{{*> . ><(((*> . ><{{{*> . ><(((*> . ><{{{*> . ><(((*> . ><{{{*> . ><(((*> . >
+                Fish-mine: Short module for getting insigths from FishBase database 
+                ===================================================================
+                ><{{{*> . ><(((*> . ><{{{*> . ><(((*> . ><{{{*> . ><(((*> . ><{{{*>
                                  
-                                ''')
+                                ''', epilog = '''* Written by Ulises Rosas''')
 
 parser.add_argument('spps', metavar='SpeciesList',
                     type=argparse.FileType('r'),
