@@ -17,7 +17,7 @@ This function **SpecimenData** let us mine associated metadata from any specimen
 * `researchers` (including identifiers and collectors).
 * `geo` (e.g. Peru).
 
-You can find this function here: [SpecimenData](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/SpecimenData.R)
+You can find this function here: [SpecimenData](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/r/SpecimenData.R)
 
 If we want to get information, for instance, from all specimens of elasmobranchs distributed in Peru and stored in BOLD, we can use the following line:
 ```R
@@ -125,7 +125,7 @@ write.dna(seqs, 'secuencias.txt', format = 'fasta', nbcol = 1, colw = 90)
 
 This script also take account for those sequences which are not, by mistake, at the right sense and sends them to perform a BLAST search through its [API](https://ncbi.github.io/blast-cloud/dev/api.html)
 
-You can find this function here: [ID_engine](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/ID_engine.R)
+You can find this function here: [ID_engine](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/r/ID_engine.R)
 
 If we want to identify at species level, for instance, all sequence samples stored in [secuencias.txt](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/secuencias.txt), we should run forthcoming lines:
 
@@ -198,12 +198,12 @@ This function adds an **audition** step ([Oliveira _et al._ 2016](https://online
 
 Both versions of `AuditionBarcodes()` can be found here:
 
-* [AuditionBarcodes](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/AuditionBarcodes.R)
-* [AuditionBarcodes.v.2](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/AuditionBarcode.v.2.R) which in turn is coupled with [worms.py](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/worms.py)
+* [AuditionBarcodes](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/r/AuditionBarcodes.R)
+* [AuditionBarcodes.v.2](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/r/AuditionBarcode.v.2.R) which in turn is coupled with [worms.py](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/python/worms.py)
 
 `addAudition()` function can be found here: 
 
-* [addAudition](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/ID_engine.R)
+* [addAudition](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/r/ID_engine.R)
 
 In order to test its efficiency, species-level identification of samples stored in [secuencias.txt](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/secuencias.txt) is conducted by using a `threshold = 0.99` (i.e. 99% of similarity):
 
@@ -244,4 +244,4 @@ data.frame(species, quality_assessment)
 7              Thais bufo      F                           Barcodes mined from GenBank or unvouchered                                                                                                                            
 ```
 
-Please notice that grades are obtained with accepted names of species according to [Worms database](http://www.marinespecies.org/) by using the [worms.py](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/worms.py) script. Hence, since currently accepted names within `species` vector has not been figured out, unevenness between the column `BIN_structure` and `species` could pop up. For this reason, on above example, _Morula margariticola_ has another name into BIN structure column (i.e. _Drupella margariticola_) which actually is its currently accepted name.
+Please notice that grades are obtained with accepted names of species according to [Worms database](http://www.marinespecies.org/) by using the [worms.py](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/python/worms.py) script. Hence, since currently accepted names within `species` vector has not been figured out, unevenness between the column `BIN_structure` and `species` could pop up. For this reason, on above example, _Morula margariticola_ has another name into BIN structure column (i.e. _Drupella margariticola_) which actually is its currently accepted name.
