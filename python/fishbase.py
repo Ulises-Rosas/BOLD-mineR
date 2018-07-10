@@ -11,6 +11,8 @@ parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpForm
                 ><{{{*> . ><(((*> . ><{{{*> . ><(((*> . ><{{{*> . ><(((*> . ><{{{*>
                                     
                                    * Written by U. Rosas
+                                   
+                                   
                       
                                 ''', epilog="* Warning: Scripts here run as fast as FishBase server allow us")
 
@@ -20,6 +22,10 @@ parser.add_argument('spps', metavar='SpeciesList',
 parser.add_argument('-lw',
                     action='store_true',
                     help='Get Length-Weight relationships'
+                    )
+parser.add_argument('-out', metavar="--output-name",
+                    action='store',
+                    help='File name of results'
                     )
 args = parser.parse_args()
 
@@ -249,9 +255,10 @@ class Fishbase:
         an attempt you have a results of ServerError, which means server oversaturated, and in another
         real result
         """
-
-        #self = Fishbase("Mugil cephalus")
         wid = self._get_id()
+
+        while wid == '':
+            wid = self._get_id()
 
         if wid == self.consider_review:
             return "{0}{1}".format(self.species, "\tcheck_spell" * 5)
@@ -259,19 +266,16 @@ class Fishbase:
         else:
             complete_url2 = self.lw_relationship_url + wid
 
-            page2 = None
-
-            while page2 is None:
-                try:
-                    page2 = urllib.request.urlopen(complete_url2).read().decode('utf-8').replace("\n", "")
-                    
-                except urllib.error.HTTPError:
-                    pass
-
+            page2 = ""
             tough_connection = re.findall(self.too_many_connections, page2)
 
-            if len(tough_connection) == 1:
-                return "{0}{1}".format(self.species, "\tSeverError" * 5)
+            while page2 == "" or len(tough_connection) == 1:
+                try:
+                    page2 = urllib.request.urlopen(complete_url2).read().decode('utf-8').replace("\n", "")
+                    tough_connection = re.findall(self.too_many_connections, page2)
+
+                except urllib.error.HTTPError:
+                    pass
 
             # a
             a = [re.sub(">([0-9.]+)</A>", "\\1", i) for i in re.findall(">[0-9.]+</A>", page2)]
@@ -330,8 +334,20 @@ class Fishbase:
                 return g
 
 if args.lw:
-    #print("Species\ta\tb\tn\tCountry\tLength\n")
+    print("\nWriting results into: " + str(args.out)+ "\n")
+
+    f = open(str(args.out), "w")
     for i in all_species:
-        print(
-            Fishbase(i).lw_relationship()
+
+        print("Acessing to " + i + " in FishBase...")
+        string = Fishbase(i).lw_relationship()
+
+        f.write(
+            string + "\n"
         )
+    f.close()
+    print("\n DONE!\n")
+    print("\tColnames are: species\ta\tb\tn\tCountry\tRangeLength\n")
+
+
+
