@@ -339,7 +339,7 @@ if args.lw:
     f = open(str(args.out), "w")
     for i in all_species:
 
-        print("Acessing to " + i + " in FishBase...")
+        print("Accessing to " + i + " in FishBase...")
         string = Fishbase(i).lw_relationship()
 
         f.write(
@@ -347,7 +347,7 @@ if args.lw:
         )
     f.close()
     print("\n DONE!\n")
-    print("\tColnames are: species\ta\tb\tn\tCountry\tRangeLength\n")
+    print("\tColumn names are: species\ta\tb\tn\tCountry\tRangeLength\n")
 
 
 
