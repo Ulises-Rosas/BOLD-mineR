@@ -2,14 +2,17 @@ import re
 import urllib.request
 import argparse
 
+
 parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                 description='''\
+                                 description=''' 
                                  
                 Fish-mine: Short module for getting insigths from FishBase database 
                 ===================================================================
                 ><{{{*> . ><(((*> . ><{{{*> . ><(((*> . ><{{{*> . ><(((*> . ><{{{*>
-                                 
-                                ''', epilog = '''* Written by Ulises Rosas''')
+                                    
+                                   * Written by U. Rosas
+                      
+                                ''', epilog="* Warning: Scripts here run as fast as FishBase server allow us")
 
 parser.add_argument('spps', metavar='SpeciesList',
                     type=argparse.FileType('r'),
@@ -55,11 +58,12 @@ class Fishbase:
         self.lw_relationship_url = "https://www.fishbase.de/popdyn/LWRelationshipList.php?ID="
 
 
-        ##m essages
+        ## messages
         self.empty_html_body = "Species name is not in the public version of FishBase"
         self.check_string = "Please check possible typos at genus name!"
         self.genus_only = "Species names are stored at choices attr."
         self.consider_review = "Please check your spelling first"
+        self.too_many_connections = "Too many connections"
 
     def validate_name(self):
         """BOLD system require accurate species name for getting metadata and sequences and most of time
@@ -240,9 +244,13 @@ class Fishbase:
             return self.synonyms
 
     def lw_relationship(self):
+        """lw relationship let us to find out parameters of growth already estimated and uploaded at
+        FishBase. Since FishBase can easily reach too many connection per day, it is possible that in
+        an attempt you have a results of ServerError, which means server oversaturated, and in another
+        real result
+        """
 
-        #self = Fishbase("Scomber japonicus")
-
+        #self = Fishbase("Mugil cephalus")
         wid = self._get_id()
 
         if wid == self.consider_review:
@@ -251,15 +259,23 @@ class Fishbase:
         else:
             complete_url2 = self.lw_relationship_url + wid
 
-            try:
-                page2 = urllib.request.urlopen(complete_url2).read().decode('utf-8').replace("\n", "")
+            page2 = None
 
-            except urllib.error.HTTPError:
+            while page2 is None:
+                try:
+                    page2 = urllib.request.urlopen(complete_url2).read().decode('utf-8').replace("\n", "")
+                    
+                except urllib.error.HTTPError:
+                    pass
 
+            tough_connection = re.findall(self.too_many_connections, page2)
+
+            if len(tough_connection) == 1:
                 return "{0}{1}".format(self.species, "\tSeverError" * 5)
 
             # a
             a = [re.sub(">([0-9.]+)</A>", "\\1", i) for i in re.findall(">[0-9.]+</A>", page2)]
+
 
             # flow control if there is any length-weight metric on that species:
             if len(a) == 0:
@@ -280,8 +296,7 @@ class Fishbase:
                 # length
                 length_pattern = "<td align='center' width=''>[\r\t]+"
 
-                pre_length = re.findall(length_pattern + "[0-9.]+&nbsp;[ 0-9\-.]+" +
-                                        "|" + length_pattern + "&nbsp;&nbsp;&nbsp;" , page2)
+                pre_length = re.findall(length_pattern + "[0-9.]+&nbsp;[ 0-9\-.]+" + "|" + length_pattern + "&nbsp;&nbsp;&nbsp;" , page2)
 
 
                 length = [re.sub("^,&nbsp;&nbsp;$", "NA",
@@ -290,8 +305,9 @@ class Fishbase:
 
                 ## country
                 ctry_pattern = "<td width='10.5%'>[\r\t]+"
+                #"[A-Z][A-Za-z\-() ]{0,}"
 
-                pre_country = re.findall(ctry_pattern + "[A-Z]{0,1}[A-Za-z\-() ]{0,}", page2)
+                pre_country = re.findall(ctry_pattern + "[A-Z]{0,1}[A-Za-z\-() ]{0,}" , page2)
 
                 country = [
                     re.sub('^$', "NA",
