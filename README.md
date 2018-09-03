@@ -198,7 +198,7 @@ This function adds an **audition** step ([Oliveira _et al._ 2016](https://online
 
 Both versions of `AuditionBarcodes()` can be found here:
 
-* [AuditionBarcodes](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/r/AuditionBarcodes.R)
+* [AuditionBarcodes](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/r/AuditionBarcodes.R) (`addAudition()`-dependent)
 * [AuditionBarcodes.v.2](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/r/AuditionBarcode.v.2.R) which in turn is coupled with [worms.py](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/python/worms.py)
 
 `addAudition()` function can be found here: 
