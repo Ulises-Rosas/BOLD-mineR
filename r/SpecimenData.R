@@ -1,5 +1,6 @@
 library(ape)
 library(data.table)
+library(RCurl)
 
 SpecimenData <- function(taxon, ids, bin, container,
                          institutions, researchers, geo, ...){
