@@ -3,6 +3,9 @@ library(dplyr)
 library(ape)
 
 library(reticulate)
+
+Sys.setenv(RETICULATE_PYTHON = "/usr/local/bin/python3")
+
 use_python("/usr/local/bin/python3") #define your python version
 
 #py_run_string("
