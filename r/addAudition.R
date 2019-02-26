@@ -1,6 +1,6 @@
 library(dplyr)
 
-addAudition <- function(seqs, threshold){
+addAudition <- function(seqs, threshold, include_ncbi=F){
         lista2 = list()
         pb <- txtProgressBar(min = 0, max = length(seqs), style = 3, char = "*")
 
@@ -52,7 +52,8 @@ addAudition <- function(seqs, threshold){
                                 lista2[[i]] = data.frame(Match = "Ambiguous",
                                                          Species = paste(vec, collapse = ", "),
                                                          Grades = paste(paste(AuditionBarcodes(species = names(barcodes),
-                                                                                               matches = sum(barcodes))$Grades,
+                                                                                               matches = sum(barcodes),
+                                                                                               include_ncbi = include_ncbi)$Grades,
                                                                               collapse = ", ")," respectively.",sep = ""),
                                                          Observations = "")
                         }
@@ -60,7 +61,8 @@ addAudition <- function(seqs, threshold){
                                 lista2[[i]] = data.frame(Match = "Unique",
                                                          Species = paste(names(barcodes)),
                                                          AuditionBarcodes(species = names(barcodes),
-                                                                          matches = sum(barcodes)))
+                                                                          matches = sum(barcodes),
+                                                                          include_ncbi = include_ncbi))
                         }
                         setTxtProgressBar(pb, i)
                 }
