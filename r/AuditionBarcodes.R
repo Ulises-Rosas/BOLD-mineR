@@ -1,6 +1,6 @@
 library(dplyr)
 
-AuditionBarcodes<- function(species, matches){ ##function for only using with public data
+AuditionBarcodes<- function(species, matches, include_ncbi = F){ ##function for only using with public data
         frames = lapply(species, function(x){
 
                 meta.by.barcodes1 = SpecimenData(taxon = x) %>%
@@ -12,25 +12,34 @@ AuditionBarcodes<- function(species, matches){ ##function for only using with pu
 
 
                 js0 = getURL(
-                        paste("http://www.boldsystems.org/index.php/API_Tax/TaxonSearch?taxName=",
-                              gsub(" ","%20", x), sep = "")
-                        ) %>%
-                        gsub('.*\"taxid\":', "", x = .) %>%
-                        gsub(',\"taxon\".*', "", x = .) %>%
-                        paste("http://www.boldsystems.org/index.php/API_Tax/TaxonData?taxId=", . ,
-                              "&dataTypes=all", sep = "") %>% getURL(url = .) %>%
-                        gsub('.*\"depositry\":\\{', "", x = .) %>%
-                        gsub('\\}.*', "", x = .) %>% gsub('\"', "", x = .) %>%
-                        strsplit(x = ., split = ",") %>% .[[1]] %>%
-                        strsplit(x = ., split = "\\:") %>%
-                        lapply(., function(x){
-                                tmp = x[!grepl("Mined from GenBank", x[1]) &
-                                                !grepl(" NCBI", x[1]) &
-                                                !grepl("*unvouchered", x[1])]
-                                data.frame(institutions = tmp[1], records = as.numeric(tmp[2]))
-                                }) %>%
-                        do.call("rbind", .) %>%
-                        .[!is.na(.$records),]
+                  paste("http://www.boldsystems.org/index.php/API_Tax/TaxonSearch?taxName=",
+                        gsub(" ","%20", x), sep = "")) %>%
+                  gsub('.*\"taxid\":', "", x = .) %>%
+                  gsub(',\"taxon\".*', "", x = .) %>%
+                  paste("http://www.boldsystems.org/index.php/API_Tax/TaxonData?taxId=", . ,
+                        "&dataTypes=all", sep = "") %>% getURL(url = .) %>%
+                  gsub('.*\"depositry\":\\{', "", x = .) %>%
+                  gsub('\\}.*', "", x = .) %>% gsub('\"', "", x = .) %>%
+                  strsplit(x = ., split = ",") %>% .[[1]] %>%
+                  strsplit(x = ., split = "\\:") %>%
+                  lapply(., function(x){
+                    
+                    if(include_ncbi){
+                      
+                      tmp = x[!grepl("*unvouchered", x[1])]
+                      
+                    }else{
+                      
+                      tmp = x[!grepl("Mined from GenBank", x[1]) &
+                                !grepl(" NCBI", x[1]) &
+                                !grepl("*unvouchered", x[1])]
+                    }
+                    
+                    
+                    data.frame(institutions = tmp[1], records = as.numeric(tmp[2]))
+                  }) %>%
+                  do.call("rbind", .) %>%
+                  .[!is.na(.$records),]
 
                 if(nrow(meta.by.barcodes1) == 0 && sum(js0$records, na.rm = T) == 0){
                         data.frame(Grades = "F",
