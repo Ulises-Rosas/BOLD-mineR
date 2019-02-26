@@ -1,5 +1,6 @@
 library(RCurl)
 library(dplyr)
+library(ape)
 
 library(reticulate)
 use_python("/usr/local/bin/python3") #define your python version
@@ -19,10 +20,10 @@ urllib$request
 
 re <- reticulate::import("re", convert = F)
 
-source_python("worms.py", convert = F)
+source_python("python/worms.py", convert = F)
 
 
-AuditionBarcodes <- function(species, include_ncbi=F){ ##function for only using with public data
+AuditionBarcodes <- function(species, matches = NULL, include_ncbi=F){ ##function for only using with public data
 
         # a compressed way to show bin's composition is the json format
         bin_information_json <- function(bin_input){
@@ -95,17 +96,36 @@ AuditionBarcodes <- function(species, include_ncbi=F){ ##function for only using
             .[!is.na(.$records),]
           
           if(nrow(meta.by.barcodes1) == 0 && sum(js0$records, na.rm = T) == 0){
+            
+            if ( is.null( matches )  )
+              obs = "Barcodes mined from GenBank or unvouchered"
+            else
+              obs = paste("There were ", matches, " matches. Barcodes mined from GenBank, NCBI.", sep = "")
+            
+            
             data.frame(Grades = "F",
-                       Observations = "Barcodes mined from GenBank or unvouchered",
+                       Observations = obs,
                        BIN_structure = "")
             }
           else if(nrow(meta.by.barcodes1) <= 3 && sum(js0$records, na.rm = T) != 0){
+            
+            if ( is.null( matches )  )
+              obs = paste("Insufficient data. Institution storing: ",
+                          length(js0$institutions),
+                          ". Total specimen records: ",
+                          sum(js0$records, na.rm = T),
+                          sep = "")
+            else
+              obs = paste("There were ",
+                          matches ,
+                          " matches. Insufficient data. Institution storing: ",
+                          length(js0$institutions),
+                          ". Specimen records: ",
+                          sum(js0$records, na.rm = T),
+                          sep = "")
+            
             data.frame(Grades = "D",
-                       Observations = paste("Insufficient data. Institution storing: ",
-                                            length(js0$institutions),
-                                            ". Total specimen records: ",
-                                            sum(js0$records, na.rm = T),
-                                            sep = ""),
+                       Observations = obs,
                        BIN_structure = "")
             }
           else{
@@ -148,7 +168,7 @@ AuditionBarcodes <- function(species, include_ncbi=F){ ##function for only using
             table = sapply(unique(do.call('rbind', bin)$species_name),
                            function(x){
                              #it gets currently accepted names
-                             worms(x)$get_accepted_name() %>%
+                             Worms(x)$get_accepted_name() %>%
                                as.character(.)
                              })
             # upon having accepted names into table, assess possible synonyms within
@@ -178,12 +198,27 @@ AuditionBarcodes <- function(species, include_ncbi=F){ ##function for only using
               if(length(unique(meta.by.barcodes1$bin_uri)) > 1){
                 
                 if(length(unique(do.call('rbind', bin)$species_name)) > 1){
+                  
+                  
+                  if ( is.null( matches )  )
+                    obs = "Mixtured BIN"
+                  else
+                    obs = paste("There were ", matches ," matches. Mixtured BIN and it's composed by species such as: ",
+                                paste(unique(do.call('rbind', bin)$species_name), collapse = ", "), sep = "")
+                  
                   data.frame(Grades = "E**",
-                             Observations = "Mixtured BIN",
+                             Observations = obs,
                              BIN_structure = bin_information_json(bin_input = bin))
                   }else{
+                    
+                    if ( is.null( matches )  )
+                      obs = "Splitted BIN"
+                    else
+                      obs = paste("There were ", matches, " matches. Assessment of intraspecific divergences is still needed.",
+                                  sep = "")
+                    
                     data.frame(Grades = "C",
-                               Observations = "Splitted BIN",
+                               Observations = obs,
                                BIN_structure = bin_information_json(bin_input = bin))
                     }
                 }else{
@@ -191,21 +226,40 @@ AuditionBarcodes <- function(species, include_ncbi=F){ ##function for only using
                   if(length(unique(bin[[1]]$species_name)) == 1 &&
                      sum(bin[[1]]$institutes) > 1 ){
                     
+                    
+                    if ( is.null( matches )  )
+                      obs = "Matched BIN with external congruence"
+                    else
+                      obs = paste("There were ", matches , " matches. External congruence.", sep = "")
+                    
                     data.frame(Grades = "A",
-                               Observations ="Matched BIN with external congruence",
+                               Observations =obs,
                                BIN_structure = bin_information_json(bin_input = bin))
                     
                     }else if(length(unique(bin[[1]]$species_name)) == 1 &&
                              sum(bin[[1]]$institutes) == 1 ){
+                
+                      if ( is.null( matches )  )
+                        obs = "Matched BIN with internal congruence only"
+                      else
+                        obs = paste("There were ", matches , " matches. Internal congruence.", sep = "")
                       
                       data.frame(Grades = "B",
-                                 Observations = "Matched BIN with internal congruence only",
+                                 Observations = obs,
                                  BIN_structure = bin_information_json(bin_input = bin))
                       
                       }else{
                         
+                        if ( is.null( matches )  )
+                          obs = "Merged BIN"
+                        else
+                          obs = paste("There were ", matches, 
+                                      " matches. ", paste(unique(unique.bin$species_name), collapse = ","),
+                                      " shared the same BIN.",
+                                      sep = "")
+                        
                         data.frame(Grades = "E*",
-                                   Observations = "Merged BIN",
+                                   Observations = obs,
                                    BIN_structure = bin_information_json(bin_input = bin))
                       }
                 }
