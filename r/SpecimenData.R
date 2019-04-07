@@ -33,7 +33,10 @@ SpecimenData <- function(taxon, ids, bin, container,
         text <- RCurl::getURL(URLtxt)
 
         if(list(...)[1] == "only")
-                return(ape::read.FASTA(textConnection(text)))
+          return(ape::read.FASTA(textConnection(text)))
+        
+        if(text == "")
+          return(text)
 
         data.table::fread(text)
 }
