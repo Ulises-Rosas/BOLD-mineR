@@ -203,7 +203,7 @@ Both versions of `AuditionBarcodes()` can be found here:
 
 `addAudition()` function can be found here: 
 
-* [addAudition](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/r/ID_engine.R)
+* [addAudition](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/r/addAudition.R)
 
 In order to test its efficiency, species-level identification of samples stored in [secuencias.txt](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/secuencias.txt) is conducted by using a `threshold = 0.99` (i.e. 99% of similarity):
 
