@@ -2,54 +2,79 @@ library(dplyr)
 library(RCurl)
 
 
-addAudition <- function(seqs, threshold, include_ncbi=F, include_grades = F ){
-  
+addAudition <- function(seqs, threshold,
+                        include_ncbi=F,
+                        just_ID = F,
+                        make_blast = F ){
+  # 
+  # seqs = read.FASTA("subset.fasta")
+  # threshold = 0.99
+
   lista2 = list()
   pb <- txtProgressBar(min = 0, max = length(seqs), style = 3, char = "*")
   
-  for(i in 1:length(seqs)){
-    
-    Sys.sleep(0.0001)
-    
-    tmp = ID_engine(seqs[i], db = "COX1_SPECIES")
+  for( i in 1:length(seqs) ){
+    # i = 1
+    tmp = ID_engine(seqs[i], db = "COX1_SPECIES", make_blast)
     
     
-    tmp = tmp[[1]] %>%
-      select(ID, taxonomicidentification, similarity ) %>%
-      filter(grepl(" ", taxonomicidentification)) %>%
-      mutate(similarity = as.numeric(as.character(similarity)))
-    
-    if(!grepl("GenBank", as.character(tmp[1,]$ID))){
-      tmp = tmp %>%
-        filter(!grepl(" sp.",taxonomicidentification))
+    if( grepl("Unavailable", tmp[[1]]$taxonomicidentification[1]) ){
+      
+      if(!just_ID){
+        data.frame(Match   = "Any",
+                   Species = "",
+                   Grades  = "",
+                   Observations = tmp[[1]]$taxonomicidentification) -> lista2[[i]]
+      }else{
+        data.frame(Match   = "Any", Species = tmp$taxonomicidentification) -> lista2[[i]]
+      }
+      setTxtProgressBar(pb, i)
+      next
     }
     
-    if(tmp[1,]$similarity < threshold || grepl("GenBank", as.character(tmp[1,]$ID)) ){
+    tmp = tmp[[1]] %>%
+      dplyr::select(ID, taxonomicidentification, similarity ) %>%
+      dplyr::filter(grepl("[A-Z][a-z]+ [a-z]+$", taxonomicidentification)) %>%
+      dplyr::mutate(similarity = as.numeric(as.character(similarity)))
+    
+    if(!grepl("GenBank", as.character(tmp[1,]$ID) )){
       
-      if(include_grades){
+      tmp = tmp %>%
+        dplyr::filter(!grepl(" sp.",taxonomicidentification))
+    }
+    
+    if( tmp[1,]$similarity < threshold ){
+      
+      paste0(
+        if(grepl("GenBank", as.character(tmp[1,]$ID))) "GenBank: " else "BOLD: ",
+        paste(
+          head(
+            apply(tmp,MARGIN = 1, function(x){paste0(x[2], " (sim. = ",x[3], ")") }),
+            n = 3),
+          collapse = ", ")
+        ) -> best_matches
+      
+      if(!just_ID){
+        
+        if(grepl("RID", as.character(tmp[1,]$ID))){
+          paste("RID not available.") -> obs
+        }else{
+          best_matches -> obs
+        }
         
         data.frame(Match   = "Any",
                    Species = "",
                    Grades  = "",
-                   Observations = if(grepl("RID", as.character(tmp[1,]$ID))){
-                     paste("RID not available.")
-                     }else{
-                       paste(
-                         if(grepl("GenBank", as.character(tmp[1,]$ID))){
-                           "GenBank: "
-                         }else{"BOLD: "},
-                         tmp$taxonomicidentification[1]," (", tmp$similarity[1], "), ",
-                         tmp$taxonomicidentification[2]," (", tmp$similarity[2], "), ",
-                         tmp$taxonomicidentification[3]," (", tmp$similarity[3],").",
-                         sep = ""
-                         )
-                       }
-                   ) -> lista2[[i]]
+                   Observations = obs ) -> lista2[[i]]
       }else{
-        data.frame(Match = "Any",Species = "") -> lista2[[i]] }
+        data.frame(Match = "Any",Species = best_matches) -> lista2[[i]] 
+        }
       
       }else{
-        tmp = tmp %>% filter(similarity > threshold)
+        
+        tmp = tmp %>% 
+          dplyr::filter(similarity > threshold)
+        
         barcodes = sort(
           table(as.character(tmp$taxonomicidentification)),
           decreasing = T)
@@ -58,10 +83,10 @@ addAudition <- function(seqs, threshold, include_ncbi=F, include_grades = F ){
         
         vec <- vector('character')
         for(k in 1:length(barcodes)){
-          vec[k] = paste(names(barcodes[k])," (",barcodes[k],")", sep = "")
+          vec[k] = paste(names(barcodes[k])," (n = ",barcodes[k],")", sep = "")
           }
         
-        if(include_grades){
+        if(!just_ID){
           data.frame(Match = "Ambiguous",
                      Species = paste(vec, collapse = ", "),
                      Grades = paste(
@@ -77,7 +102,7 @@ addAudition <- function(seqs, threshold, include_ncbi=F, include_grades = F ){
         
         }else{
           
-          if(include_grades){
+          if(!just_ID){
             
             data.frame(Match = "Unique",
                        Species = paste(names(barcodes)),
@@ -86,7 +111,7 @@ addAudition <- function(seqs, threshold, include_ncbi=F, include_grades = F ){
                                         include_ncbi = include_ncbi )) -> lista2[[i]]
           }else{
             
-            data.frame(Match = "Unique",
+            data.frame(Match   = "Unique",
                        Species = paste(names(barcodes))) -> lista2[[i]]
             }
           }
@@ -96,3 +121,5 @@ addAudition <- function(seqs, threshold, include_ncbi=F, include_grades = F ){
   close(pb)
   return(data.frame(Samples = names(seqs), do.call('rbind', lista2)))
 }
+
+addAudition(seqs = read.FASTA("subset.fasta"), threshold = 0.99)
