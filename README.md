@@ -193,13 +193,7 @@ $`ANGBF10917-15|Alopias pelagicus|COI-5P|KJ146026`
 ```
 ## addAudition
 
-This function adds an **audition** step ([Oliveira _et al._ 2016](https://onlinelibrary.wiley.com/doi/full/10.1111/jfb.13169)) to each selected specimen by `ID_engine()` (see above), given a certain threshold. This function, in turn, uses another function called `AuditionBarcodes()`. This last one has two version. The first one is coupled with `addAudition()` and the second one is `addAudition()`-independent and also normalizes species names by taking accepted names from [Worms database](http://www.marinespecies.org/).
-
-
-Both versions of `AuditionBarcodes()` can be found here:
-
-* [AuditionBarcodes](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/r/AuditionBarcodes.R) (`addAudition()`-dependent)
-* [AuditionBarcodes.v.2](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/r/AuditionBarcode.v.2.R) which in turn is coupled with [worms.py](https://github.com/Ulises-Rosas/BOLD-mineR/blob/master/python/worms.py)
+This function adds an **audition** step ([Oliveira _et al._ 2016](https://onlinelibrary.wiley.com/doi/full/10.1111/jfb.13169)) to each selected specimen by `ID_engine()` (see above), given a certain threshold. This function, in turn, uses another function called `AuditionBarcodes()`. This prior function is coupled with `addAudition()` and can validate species names by taking accepted names from [Worms database](http://www.marinespecies.org/).
 
 `addAudition()` function can be found here: 
 
@@ -222,16 +216,14 @@ addAudition(seqs = read.FASTA('secuencias.txt'), threshold = 0.99)
 
 #### AuditionBarcodes
 
-Despite `AuditionBarcodes()` function is coupled with `addAudition()` function, its independent version can work with just a list of names. Furthermore, there is an argument which enables to chose if sequences from GenBank are considered. It is pending, however, assess whether these sequences used to assess barcode's quality come from either a published article or direct submission:
+Despite `AuditionBarcodes()` function is coupled with `addAudition()` function, it can also work with just a list of names. Furthermore, there is an argument which enables to chose if sequences from GenBank are considered. It is pending, however, assess whether these sequences used to assess barcode's quality come from either a published article or direct submission:
 
 ```R
 species <- c("Ceratostoma foliatum" , "Ocinebrina aciculata",
               "Morula margariticola", "Concholepas concholepas",
               "Nucella emarginata" ,"Thais luteostoma", "Thais bufo")
               
-quality_assessment <- AuditionBarcodes(species, include_ncbi = F)
-
-data.frame(species, quality_assessment)
+AuditionBarcodes(species, include_ncbi = F, validate_name = T)
 ```
 ```
                   species Grades                                                         Observations                                                                                                               BIN_structure
