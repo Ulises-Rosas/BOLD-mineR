@@ -5,7 +5,10 @@ library(RCurl)
 addAudition <- function(seqs, threshold,
                         include_ncbi=F,
                         just_ID = F,
-                        make_blast = F ){
+                        make_blast = F ,
+                        python_path = "/usr/local/bin/python3",
+                        validate_name = F, 
+                        ){
   # 
   # seqs = read.FASTA("subset.fasta")
   # threshold = 0.99
@@ -34,7 +37,8 @@ addAudition <- function(seqs, threshold,
     
     tmp = tmp[[1]] %>%
       dplyr::select(ID, taxonomicidentification, similarity ) %>%
-      dplyr::filter(grepl("[A-Z][a-z]+ [a-z]+$", taxonomicidentification)) %>%
+      dplyr::filter(grepl("^[A-Z][a-z]+ [a-z]+$", taxonomicidentification),
+                    !grepl("^[A-Z][a-z]+ sp[p|\\.]{0,2}$", taxonomicidentification)) %>%
       dplyr::mutate(similarity = as.numeric(as.character(similarity)))
     
     if(!grepl("GenBank", as.character(tmp[1,]$ID) )){
@@ -93,7 +97,9 @@ addAudition <- function(seqs, threshold,
                        paste(
                          AuditionBarcodes(species = names(barcodes),
                                           matches = sum(barcodes),
-                                          include_ncbi = include_ncbi)$Grades,
+                                          include_ncbi  = include_ncbi,
+                                          validate_name = validate_name,
+                                          python_path   = python_path)$Grades,
                          collapse = ", "),
                        " respectively.",sep = ""),
                      Observations = "") -> lista2[[i]]
@@ -108,7 +114,9 @@ addAudition <- function(seqs, threshold,
                        Species = paste(names(barcodes)),
                        AuditionBarcodes(species = names(barcodes),
                                         matches = sum(barcodes),
-                                        include_ncbi = include_ncbi )) -> lista2[[i]]
+                                        include_ncbi  = include_ncbi,
+                                        validate_name = validate_name,
+                                        python_path   = python_path)) -> lista2[[i]]
           }else{
             
             data.frame(Match   = "Unique",
