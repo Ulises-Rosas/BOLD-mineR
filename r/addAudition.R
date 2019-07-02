@@ -121,5 +121,3 @@ addAudition <- function(seqs, threshold,
   close(pb)
   return(data.frame(Samples = names(seqs), do.call('rbind', lista2)))
 }
-
-addAudition(seqs = read.FASTA("subset.fasta"), threshold = 0.99)
