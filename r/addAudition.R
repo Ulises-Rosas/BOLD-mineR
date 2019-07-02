@@ -26,7 +26,7 @@ addAudition <- function(seqs, threshold,
                    Grades  = "",
                    Observations = tmp[[1]]$taxonomicidentification) -> lista2[[i]]
       }else{
-        data.frame(Match   = "Any", Species = tmp$taxonomicidentification) -> lista2[[i]]
+        data.frame(Match   = "Any", Species = tmp[[1]]$taxonomicidentification) -> lista2[[i]]
       }
       setTxtProgressBar(pb, i)
       next
