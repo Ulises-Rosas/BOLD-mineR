@@ -7,7 +7,7 @@ addAudition <- function(seqs, threshold,
                         just_ID = F,
                         make_blast = F ,
                         python_path = "/usr/local/bin/python3",
-                        validate_name = F, 
+                        validate_name = F 
                         ){
   # 
   # seqs = read.FASTA("subset.fasta")
